@@ -76,6 +76,7 @@ def change_square(board: list[str], position: tuple[int,int],
         Returns:
                 None
         """
+        
         #get the row going to be changed
         row_get = board[position[0]]
         #sub the new square in and remove the old one
@@ -92,7 +93,7 @@ def coordinate_to_position(coordinate: str) -> tuple[int,int]:
                 the first letter should be an uppercase letter from 'A' to 'I'
                 the second character should be a single digit character
         
-        Get the position on board by entering a coordinate string
+        Convert the coordinate string entered into position on board
 
         Parameter:
                 coordinate: Corresponding characters of certain position on board
@@ -106,6 +107,86 @@ def coordinate_to_position(coordinate: str) -> tuple[int,int]:
         #get the tuple for return
         corresponded_position = ((int(coordinate[1])-1),dict_coordinate.get(coordinate[0]))
         return corresponded_position
+
+
+def can_place_ship(board: list[str], ship: list[tuple[int,int]]) -> bool:
+        """
+        Pre-conditions:
+                All positions in ship must exit on board
+
+        Check if the position is available to put a ship
+
+        Parameter:
+                board: Board used for game play
+                ship: Positions of ship going to place
+
+        Returns:
+                True or False
+        """
+
+        #use for loop to determine every tuple in list 'ship'
+        for position in ship:
+                row_num = position[0]
+                colomn_num = position[1]
+        #determine whether this position is empty, if empty, return 'True'
+                if board[row_num][colomn_num] == '~':
+                        return True
+                else:
+                        return False
+
+
+def place_ship(board: list[str], ship: list[tuple[int,int]]) -> None:
+        """
+        Pre-conditions:
+                Ship should be able to be placed due to function can_place_ship
+
+        Place ship if place available
+
+        Parameter:
+                board: Board used for game play
+                ship: Positions of ship going to place
+
+        Returns:
+                None
+        """
+
+        if can_place_ship(board, ship) == True:
+                for position in ship:
+                        row_place = position[0]
+                        colomn_place = position[1]
+                        board[row_place] = (board[row_place][0:colomn_place]
+                        + 'O' + board[row_place][colomn_place+1:])
+        return
+              
+                
+def attack(board: list[str], position: tuple[int, int]) -> None:
+        """
+        Pre-conditions:
+                Position must exit on board
+
+        Determine whether the aim position met condition, if yes,
+        change the charaacter to 'X', if not, change the character to '!'
+
+        Parameter:
+                board: Board used for game play
+                position: Position used for determine
+
+        Returns:
+                None
+        """
+        
+        row_attack = position[0]
+        colomn_attack = position[1]
+        if board[row_attack][colomn_attack] == 'O':
+                board[row_attack] = (board[row_attack][0:colomn_attack]
+                + 'X' + board[row_attack][colomn_attack+1:])       
+        elif board[row_attack][colomn_attack] == 'X':
+                board[row_attack] = (board[row_attack][0:colomn_attack]
+                + 'X' + board[row_attack][colomn_attack+1:])
+        else:
+                board[row_attack] = (board[row_attack][0:colomn_attack]
+                + '!' + board[row_attack][colomn_attack+1:])
+        return
 
 
 
