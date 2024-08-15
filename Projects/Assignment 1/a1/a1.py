@@ -126,14 +126,8 @@ def can_place_ship(board: list[str], ship: list[tuple[int,int]]) -> bool:
 
         #use for loop to determine every tuple in list 'ship'
         for position in ship:
-                row_num = position[0]
-                colomn_num = position[1]
-        #determine whether this position is empty, if empty, return 'True'
-                if board[row_num][colomn_num] == '~':
-                        return True
-                else:
-                        return False
-
+        #determine whether square get is empty, if empty, return 'True'
+                return get_square(board,position) == '~'
 
 def place_ship(board: list[str], ship: list[tuple[int,int]]) -> None:
         """
@@ -150,12 +144,11 @@ def place_ship(board: list[str], ship: list[tuple[int,int]]) -> None:
                 None
         """
 
+        #place a ship when can_place_ship returns 'True'
         if can_place_ship(board, ship) == True:
                 for position in ship:
-                        row_place = position[0]
-                        colomn_place = position[1]
-                        board[row_place] = (board[row_place][0:colomn_place]
-                        + 'O' + board[row_place][colomn_place+1:])
+                        board[position[0]] = (board[position[0]][0:position[1]]
+                        + 'O' + board[position[0]][position[1]+1:])
         return
               
                 
@@ -174,19 +167,53 @@ def attack(board: list[str], position: tuple[int, int]) -> None:
         Returns:
                 None
         """
-        
-        row_attack = position[0]
-        colomn_attack = position[1]
-        if board[row_attack][colomn_attack] == 'O':
-                board[row_attack] = (board[row_attack][0:colomn_attack]
-                + 'X' + board[row_attack][colomn_attack+1:])       
-        elif board[row_attack][colomn_attack] == 'X':
-                board[row_attack] = (board[row_attack][0:colomn_attack]
-                + 'X' + board[row_attack][colomn_attack+1:])
+
+        #attack success if there is a placed ship
+        if get_square(board, position) == 'O':
+                board[position[0]] = (board[position[0]][0:position[1]]
+                + 'X' + board[position[0]][position[1]+1:])
+        elif get_square(board, position) == 'X':
+                board[position[0]] = (board[position[0]][0:position[1]]
+                + 'X' + board[position[0]][position[1]+1:])
+        #miss if there is no ship placed
         else:
-                board[row_attack] = (board[row_attack][0:colomn_attack]
-                + '!' + board[row_attack][colomn_attack+1:])
+                board[position[0]] = (board[position[0]][0:position[1]]
+                + '!' + board[position[0]][position[1]+1:])
         return
+
+
+def display_board(board: list[str],show_ships: bool) -> None:
+        """
+        Pre-conditions:
+                show_ships input should be 'True' or 'False'
+
+        Show the board according to different show_ships value
+
+        Parameter:
+                board: Board used for game play
+                show_ships: Bool value of whether the ships should be shown
+
+        Returns:
+                None
+        """
+        
+        #get and print the board title
+        row_length = len(board[0])
+        title_string = ' /ABCDEFGHI'
+        get_title = title_string[0:(row_length+2)]
+        print(get_title)
+        #print diff board according to the value of show_ships
+        for row_num,rows in enumerate(board,start = 1):
+                if 'O' in rows and show_ships == False:
+                        #replace 'O' with '~'
+                        rows = rows.replace('O','~')
+                        print(row_num,'|',rows, sep = "")
+                else:
+                        print(row_num,'|',rows, sep = "")
+        return
+
+
+                
 
 
 
