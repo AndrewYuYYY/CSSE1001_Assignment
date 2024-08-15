@@ -129,6 +129,7 @@ def can_place_ship(board: list[str], ship: list[tuple[int,int]]) -> bool:
         #determine whether square get is empty, if empty, return 'True'
                 return get_square(board,position) == '~'
 
+
 def place_ship(board: list[str], ship: list[tuple[int,int]]) -> None:
         """
         Pre-conditions:
@@ -169,10 +170,7 @@ def attack(board: list[str], position: tuple[int, int]) -> None:
         """
 
         #attack success if there is a placed ship
-        if get_square(board, position) == 'O':
-                board[position[0]] = (board[position[0]][0:position[1]]
-                + 'X' + board[position[0]][position[1]+1:])
-        elif get_square(board, position) == 'X':
+        if get_square(board, position) == 'O' or get_square(board, position) == 'X':
                 board[position[0]] = (board[position[0]][0:position[1]]
                 + 'X' + board[position[0]][position[1]+1:])
         #miss if there is no ship placed
@@ -213,8 +211,60 @@ def display_board(board: list[str],show_ships: bool) -> None:
         return
 
 
-                
+def get_player_hp(board: list[str]) -> int:
+        """
+        Pre-conditions:
+                null
 
+        Show the player's hp (how many active ships)
+
+        Parameter:
+                board: Board used for game play
+
+        Returns:
+                An integer shows the number of active ships
+        """
+
+        #give initial value 0 to variable player_hp
+        player_hp = 0
+        #use loops to determine every character in 'board'
+        for rows in board:
+                for order in range(len(rows)):
+                        #count every 'O' as an addition of player_hp
+                        if rows[order] == 'O':
+                                player_hp = player_hp + 1
+        return int(player_hp)
+
+
+def display_game(p1_board: list[str], p2_board: list[str],
+                 show_ships: bool) -> None:
+        """
+        Pre-coditions:
+                null
+
+        Show the player's whole game display
+
+        Parameters:
+                p1_board: Board used for player 1
+                p2_board: Board used for player 2
+                show_ships: Bool value of whether the ships should be shown
+
+        Returns:
+                None
+        """
+
+        life_p1 = 'life'
+        life_p2 = 'life'
+        if get_player_hp(p1_board) != 1:
+                life_p1 = 'lives'
+        if get_player_hp(p2_board) != 1:
+                life_p2 = 'lives'
+        print('PLAYER 1:', get_player_hp(p1_board), '{} remaining'.format(life_p1))
+        display_board(p1_board, show_ships)
+
+        print('PLAYER 2:', get_player_hp(p2_board), '{} remaining'.format(life_p2))
+        display_board(p2_board, show_ships)
+        return
 
 
 
