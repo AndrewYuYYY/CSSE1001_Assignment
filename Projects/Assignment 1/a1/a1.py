@@ -7,6 +7,9 @@ def play_game() -> None:
 
 
 def num_hour() -> float:
+        """
+        Get hour spent on assignment 1
+        """
         return
 
 
@@ -265,6 +268,56 @@ def display_game(p1_board: list[str], p2_board: list[str],
         print('PLAYER 2:', get_player_hp(p2_board), '{} remaining'.format(life_p2))
         display_board(p2_board, show_ships)
         return
+
+
+def is_valid_coordinate(coordinate: str, board_size: int) -> tuple[bool,str]:
+        """
+        Pre-conditions:
+                null
+
+        Get different string corresponding to coordinate inputed
+
+        Parameters:
+                coordinate: A string contains the target position
+                board_size: An integer shows the size of board
+        """
+
+        
+        if len(coordinate) != 2:
+                tuple_output = (False, 'Coordinates should be 2 characters long.')
+        elif coordinate[0] not in 'ABCDEFGHI'[0:board_size]:
+                tuple_output = (False, 'Invalid coordinate letter.')
+        elif coordinate[1] not in '123456789'[0:board_size]:
+                tuple_output = (False, 'Invalid coordinate number.')
+        else:
+                tuple_output = (True, '')
+        return tuple_output
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
