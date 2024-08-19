@@ -28,7 +28,7 @@ def create_empty_board(board_size: int) -> list[str]:
         """
 
         #create a long string used for board rows
-        board_rows = '~' * board_size
+        board_rows = EMPTY_SQUARE * board_size
         #set up a initial value for 'order of colomns' shows
         #where row located
         order_of_colomns = 1
@@ -152,7 +152,7 @@ def place_ship(board: list[str], ship: list[tuple[int,int]]) -> None:
         if can_place_ship(board, ship) == True:
                 for position in ship:
                         board[position[0]] = (board[position[0]][0:position[1]]
-                        + 'O' + board[position[0]][position[1]+1:])
+                        + ACTIVE_SHIP_SQUARE + board[position[0]][position[1]+1:])
         return
               
                 
@@ -162,7 +162,8 @@ def attack(board: list[str], position: tuple[int, int]) -> None:
                 Position must exit on board
 
         Determine whether the aim position met condition, if yes,
-        change the charaacter to 'X', if not, change the character to '!'
+        change the charaacter to DEAD_SHIP_SQUARE,
+        if not, change the character to MISS_SQUARE
 
         Parameter:
                 board: Board used for game play
@@ -173,13 +174,13 @@ def attack(board: list[str], position: tuple[int, int]) -> None:
         """
 
         #attack success if there is a placed ship
-        if get_square(board, position) == 'O' or get_square(board, position) == 'X':
+        if get_square(board, position) == ACTIVE_SHIP_SQUARE or get_square(board, position) == DEAD_SHIP_SQUARE:
                 board[position[0]] = (board[position[0]][0:position[1]]
-                + 'X' + board[position[0]][position[1]+1:])
+                + DEAD_SHIP_SQUARE + board[position[0]][position[1]+1:])
         #miss if there is no ship placed
         else:
                 board[position[0]] = (board[position[0]][0:position[1]]
-                + '!' + board[position[0]][position[1]+1:])
+                + MISS_SQUARE + board[position[0]][position[1]+1:])
         return
 
 
@@ -200,17 +201,17 @@ def display_board(board: list[str],show_ships: bool) -> None:
         
         #get and print the board title
         row_length = len(board[0])
-        title_string = ' /ABCDEFGHI'
+        title_string = HEADER_SEPARATOR + 'ABCDEFGHI'
         get_title = title_string[0:(row_length+2)]
         print(get_title)
         #print diff board according to the value of show_ships
         for row_num,rows in enumerate(board,start = 1):
-                if 'O' in rows and show_ships == False:
-                        #replace 'O' with '~'
-                        rows = rows.replace('O','~')
-                        print(row_num,'|',rows, sep = "")
+                if ACTIVE_SHIP_SQUARE in rows and show_ships == False:
+                        #replace ACTIVE_SHIP_SQUARE with EMPTY_SQUARE
+                        rows = rows.replace(ACTIVE_SHIP_SQUARE,EMPTY_SQUARE)
+                        print(row_num,ROW_SEPARATOR,rows, sep = "")
                 else:
-                        print(row_num,'|',rows, sep = "")
+                        print(row_num,ROW_SEPARATOR,rows, sep = "")
         return
 
 
@@ -233,8 +234,8 @@ def get_player_hp(board: list[str]) -> int:
         #use loops to determine every character in 'board'
         for rows in board:
                 for order in range(len(rows)):
-                        #count every 'O' as an addition of player_hp
-                        if rows[order] == 'O':
+                        #count every ACTIVE_SHIP_SQUARE as an addition of player_hp
+                        if rows[order] == ACTIVE_SHIP_SQUARE:
                                 player_hp = player_hp + 1
         return int(player_hp)
 
@@ -256,15 +257,19 @@ def display_game(p1_board: list[str], p2_board: list[str],
                 None
         """
 
+        #give initial values to variables
         life_p1 = 'life'
         life_p2 = 'life'
+        #determine the player1's hp
         if get_player_hp(p1_board) != 1:
                 life_p1 = 'lives'
+        #determine the player2's hp
         if get_player_hp(p2_board) != 1:
                 life_p2 = 'lives'
+        #print player1's board
         print('PLAYER 1:', get_player_hp(p1_board), '{} remaining'.format(life_p1))
         display_board(p1_board, show_ships)
-
+        #print player2's board
         print('PLAYER 2:', get_player_hp(p2_board), '{} remaining'.format(life_p2))
         display_board(p2_board, show_ships)
         return
@@ -280,21 +285,52 @@ def is_valid_coordinate(coordinate: str, board_size: int) -> tuple[bool,str]:
         Parameters:
                 coordinate: A string contains the target position
                 board_size: An integer shows the size of board
+
+        Returns:
+                Tuple contains relationship between elements inside
         """
 
-        
+        #determine different limits of coordinate string input
+        #and get the corresponding output
         if len(coordinate) != 2:
-                tuple_output = (False, 'Coordinates should be 2 characters long.')
+                tuple_output = (False, INVALID_COORDINATE_LENGTH)
         elif coordinate[0] not in 'ABCDEFGHI'[0:board_size]:
-                tuple_output = (False, 'Invalid coordinate letter.')
+                tuple_output = (False, INVALID_COORDINATE_LETTER)
         elif coordinate[1] not in '123456789'[0:board_size]:
-                tuple_output = (False, 'Invalid coordinate number.')
+                tuple_output = (False, INVALID_COORDINATE_NUMBER)
         else:
                 tuple_output = (True, '')
         return tuple_output
 
 
+def is_valid_coordinate_sequence(coordinate_sequence: str, ship_length: int,
+                                 board_size: int) -> tuple[bool, str]:
+        """
+        Pre-conditions:
+                null
 
+        Get different message string correspoding to coordinate_sequence input
+
+        Parameters:
+                coordinate_sequence: A string contains target positions of placing ship
+                ship_length: An integer shows the length of ship going to place
+                board_size: An integer shows the size of board
+        Returns:
+                Tuple contains relationship between elements inside
+        """
+
+        #split the sequence into separate strings(coordinates)
+        coordinates = coordinate_sequence.split(',')
+        if len(coordinates) != ship_length:
+                tuple_output = (False, INVALID_COORDINATE_SEQUENCE_LENGTH)
+        else:
+                for coordinate in coordinates:
+                        if is_valid_coordinate(coordinate, board_size)[0] == False:
+                                tuple_output = is_valid_coordinate(coordinate, board_size)
+                        else:
+                                tuple_output = (True,'')                      
+        return tuple_output
+        
 
 
 
