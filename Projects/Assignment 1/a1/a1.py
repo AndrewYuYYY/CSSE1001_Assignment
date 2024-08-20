@@ -3,8 +3,32 @@ from support import *
 
 
 def play_game() -> None:
-        pass
-
+        board_size = int(input('Enter board size: '))
+        empty_board = create_empty_board(board_size)
+        ship_sizes = input('Enter ships sizes: ').split(',')
+        print('--------------------')
+        print('PLAYER 1 SHIP PLACEMENT:')
+        p1_board = setup_board(board_size, ship_sizes)
+        print('PLAYER 2 SHIP PLACEMENT:')
+        p2_board = setup_board(board_size, ship_sizes)
+        n = 1
+        while get_player_hp(p1_board) != 0 and get_player_hp(p2_board) != 0:
+                print('\n-------Next_Turn--------')
+                display_game(p1_board, p2_board, False)
+                print('\n')
+                if n % 2 == 1:
+                        print('PLAYER 1\'s turn!')
+                        make_attack(p1_board)
+                        n += 1
+                else:
+                        print('PLAYER 2\'S turn!')
+                        make_attack(p2_board)
+                        n += 1
+        print('\n=========\nGAME OVER\n=========')
+        print(get_winner(p1_board, p2_board),'won!')
+        display_game(p1_board, p2_board, True)
+        return
+        
 
 def num_hour() -> float:
         """
@@ -177,12 +201,10 @@ def attack(board: list[str], position: tuple[int, int]) -> None:
 
         #attack success if there is a placed ship
         if get_square(board, position) == ACTIVE_SHIP_SQUARE or get_square(board, position) == DEAD_SHIP_SQUARE:
-                board[position[0]] = (board[position[0]][0:position[1]]
-                + DEAD_SHIP_SQUARE + board[position[0]][position[1]+1:])
+                change_square(board, position, DEAD_SHIP_SQUARE)
         #miss if there is no ship placed
         else:
-                board[position[0]] = (board[position[0]][0:position[1]]
-                + MISS_SQUARE + board[position[0]][position[1]+1:])
+                change_square(board, position, MISS_SQUARE)
         return
 
 
@@ -381,44 +403,73 @@ def setup_board(board_size: int, ship_sizes: list[int]) -> list[str]:
         """
 
         board = create_empty_board(board_size)
-        display_board(board, True)
         for ship_size in ship_sizes:
-                coordinates = input('Enter a comma separated list of {} coordinates: '.format(ship_size))
-                while is_valid_coordinate_sequence(coordinates, ship_size, board_size)[0] == False:
-                        print(is_valid_coordinate_sequence(coordinates, ship_size, board_size)[1])
+                while True:
                         display_board(board, True)
                         coordinates = input('Enter a comma separated list of {} coordinates: '.format(ship_size))
-                position_list = build_ship(coordinates)
-                while can_place_ship(board, position_list) == False:
-                        print(INVALID_SHIP_PLACEMENT)
-                        display_board(board, True)
-                        coordinates = input('Enter a comma separated list of {} coordinates: '.format(ship_size))
-                        position_list = build_ship(coordinates)
-                position_list = build_ship(coordinates)
-                place_ship(board, position_list)
-                display_board(board,True)
+                        if is_valid_coordinate_sequence(coordinates, ship_size, board_size)[0] == True:
+                                position_list = build_ship(coordinates)
+                                if can_place_ship(board, position_list) == True:
+                                        place_ship(board, position_list)
+                                        break
+                                else:
+                                        print(INVALID_SHIP_PLACEMENT)
+                        else:
+                                print(is_valid_coordinate_sequence(coordinates, ship_size, board_size)[1])
         return board
 
 
+def get_winner(p1_board: list[str], p2_board: list[str]) -> Optional[str]:
+        """
+        Pre-conditions：
+                null
+
+        Determine the hp for each player and return the corrsponding
+        string shows the winner
+
+        Parameters:
+                p1_board: Game board for player 1
+                p2_board: Game board for player 2
+
+        Retruns:
+                A string shows the winner
+        """
+
+        player1_hp = get_player_hp(p1_board)
+        player2_hp = get_player_hp(p2_board)
+        if player1_hp == 0:
+                winner = 'PLAYER 2'
+        elif player2_hp == 0:
+                winner = 'PLAYER 1'
+        else:
+                winner = None
+        return winner
 
 
+def make_attack(target_board: list[str]) -> None:
+        """
+        Pre-coditions:
+                null
+
+        Ensure the input coordinate in target board is valid
+        and use attack() function to get new values in board
+
+        Parameters:
+                target_board: Board used for game play
+
+        Returns:
+                None
+        """
 
 
-
-
-
-
-
-
-
-
-
-
-
-#board_size = int(input('Enter board size:'))
-#board = create_empty_board(board_size)
-
-
+        while True:
+                coordinate = input('Enter a coordinate to attack: ')
+                if is_valid_coordinate(coordinate, len(target_board))[0] == False:
+                        print(is_valid_coordinate(coordinate, len(target_board))[1])
+                else:
+                        position = coordinate_to_position(coordinate)
+                        attack(target_board, position)
+                        return
 
 
 if __name__ == "__main__":
