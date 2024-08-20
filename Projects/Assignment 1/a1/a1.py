@@ -327,21 +327,66 @@ def is_valid_coordinate_sequence(coordinate_sequence: str, ship_length: int,
                 for coordinate in coordinates:
                         if is_valid_coordinate(coordinate, board_size)[0] == False:
                                 tuple_output = is_valid_coordinate(coordinate, board_size)
+                                return tuple_output
                         else:
-                                tuple_output = (True,'')                      
+                                tuple_output = (True,'')
+                                
         return tuple_output
         
 
+def build_ship(coordinate_sequence: str) -> list[tuple[int,int]]:
+        """
+        Pre-conditions:
+                coordinate_sequence must represent a valid coordinate sequence
+
+        Turns the coordinate_sequence into list of positions
+
+        Parameters:
+                coordinate_sequence: String shows coodinates input
+
+        Returns:
+                List of position tuples
+        """
+
+        #split coordinate_sequence into short coordinate strings
+        coordinates = coordinate_sequence.split(',')
+        #set an empty list for positions storing
+        position_list = []
+        #determine every coordinate in the list coordinates
+        for coordinate in coordinates:
+                #use coordinate_to_position function to convert
+                #coordinate into position tuple
+                position = coordinate_to_position(coordinate)
+                position_list.append(position)
+        return position_list
 
 
 
+def setup_board(board_size: int, ship_sizes: list[int]) -> list[str]:
+        """
+        Pre-conditions:
+                null
 
+        Set a board for ship placing, ask for ship size and place ship for
+        each ship size in asked position if position is valid
 
+        Parameters:
+                board_size: Integer shows value of n in 'n*n board' for game play
+                ship_sizes: List of integers shows the size of ships to place
 
+        Returns:
+                List of stings shows the board after placing ships
+        """
 
-
-
-
+        board = create_empty_board(board_size)
+        for ship_size in ship_sizes:
+                display_board(board, True)
+                coordinates = input(prompt_for_ship_coordinates(ship_size))
+                position_list = build_ship(coordinates)
+        #if 
+        #elif can_place_ship(board, position_list) == False:
+        #print(INVALID_SHIP_PLACEMENT)
+                        
 
 
 
