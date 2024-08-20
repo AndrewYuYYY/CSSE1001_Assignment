@@ -129,8 +129,10 @@ def can_place_ship(board: list[str], ship: list[tuple[int,int]]) -> bool:
 
         #use for loop to determine every tuple in list 'ship'
         for position in ship:
+                if get_square(board,position) != '~':
+                        return False
         #determine whether square get is empty, if empty, return 'True'
-                return get_square(board,position) == '~'
+        return True
 
 
 def place_ship(board: list[str], ship: list[tuple[int,int]]) -> None:
@@ -379,14 +381,23 @@ def setup_board(board_size: int, ship_sizes: list[int]) -> list[str]:
         """
 
         board = create_empty_board(board_size)
+        display_board(board, True)
         for ship_size in ship_sizes:
-                display_board(board, True)
-                coordinates = input(prompt_for_ship_coordinates(ship_size))
+                coordinates = input('Enter a comma separated list of {} coordinates: '.format(ship_size))
+                while is_valid_coordinate_sequence(coordinates, ship_size, board_size)[0] == False:
+                        print(is_valid_coordinate_sequence(coordinates, ship_size, board_size)[1])
+                        display_board(board, True)
+                        coordinates = input('Enter a comma separated list of {} coordinates: '.format(ship_size))
                 position_list = build_ship(coordinates)
-        #if 
-        #elif can_place_ship(board, position_list) == False:
-        #print(INVALID_SHIP_PLACEMENT)
-                        
+                while can_place_ship(board, position_list) == False:
+                        print(INVALID_SHIP_PLACEMENT)
+                        display_board(board, True)
+                        coordinates = input('Enter a comma separated list of {} coordinates: '.format(ship_size))
+                        position_list = build_ship(coordinates)
+                position_list = build_ship(coordinates)
+                place_ship(board, position_list)
+                display_board(board,True)
+        return board
 
 
 
