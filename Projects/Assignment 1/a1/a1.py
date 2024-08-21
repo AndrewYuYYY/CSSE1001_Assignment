@@ -4,27 +4,29 @@ from support import *
 
 def play_game() -> None:
         board_size = int(input('Enter board size: '))
-        empty_board = create_empty_board(board_size)
-        ship_sizes = input('Enter ships sizes: ').split(',')
-        print('--------------------')
-        print('PLAYER 1 SHIP PLACEMENT:')
-        p1_board = setup_board(board_size, ship_sizes)
-        print('PLAYER 2 SHIP PLACEMENT:')
-        p2_board = setup_board(board_size, ship_sizes)
+        ship_sizes1 = input('Enter ships sizes: ').split(',')
+        ship_sizes2 = []
+        for ship_size in ship_sizes1:
+                ship_sizes2.append(int(ship_size))
+        print(DIVIDER_MESSAGE)
+        print(P1_PLACEMENT_MESSAGE)
+        p1_board = setup_board(board_size, ship_sizes2)
+        print(P2_PLACEMENT_MESSAGE)
+        p2_board = setup_board(board_size, ship_sizes2)
         n = 1
         while get_player_hp(p1_board) != 0 and get_player_hp(p2_board) != 0:
-                print('\n-------Next_Turn--------')
+                print(NEXT_TURN_GRAPHIC)
                 display_game(p1_board, p2_board, False)
-                print('\n')
+                print('')
                 if n % 2 == 1:
                         print('PLAYER 1\'s turn!')
-                        make_attack(p1_board)
-                        n += 1
-                else:
-                        print('PLAYER 2\'S turn!')
                         make_attack(p2_board)
                         n += 1
-        print('\n=========\nGAME OVER\n=========')
+                else:
+                        print('PLAYER 2\'s turn!')
+                        make_attack(p1_board)
+                        n += 1
+        print(GAME_OVER_GRAPHIC)
         print(get_winner(p1_board, p2_board),'won!')
         display_game(p1_board, p2_board, True)
         return
@@ -401,7 +403,7 @@ def setup_board(board_size: int, ship_sizes: list[int]) -> list[str]:
         Returns:
                 List of stings shows the board after placing ships
         """
-
+        
         board = create_empty_board(board_size)
         for ship_size in ship_sizes:
                 while True:
@@ -463,7 +465,7 @@ def make_attack(target_board: list[str]) -> None:
 
 
         while True:
-                coordinate = input('Enter a coordinate to attack: ')
+                coordinate = input(TURN_INPUT_MESSAGE)
                 if is_valid_coordinate(coordinate, len(target_board))[0] == False:
                         print(is_valid_coordinate(coordinate, len(target_board))[1])
                 else:
