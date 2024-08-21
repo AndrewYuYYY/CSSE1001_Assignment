@@ -3,17 +3,34 @@ from support import *
 
 
 def play_game() -> None:
+        """
+        Pre-condition:
+                All functions used in this function are defined
+
+        Get the game played in right display order
+        
+        Parameters:
+                null
+
+        Return:
+                None
+        """
+
+        #ask for board size input
         board_size = int(input('Enter board size: '))
+        #ask for ship sizes input
         ship_sizes1 = input('Enter ships sizes: ').split(',')
         ship_sizes2 = []
         for ship_size in ship_sizes1:
                 ship_sizes2.append(int(ship_size))
         print(DIVIDER_MESSAGE)
+        #set up board for each player
         print(P1_PLACEMENT_MESSAGE)
         p1_board = setup_board(board_size, ship_sizes2)
         print(P2_PLACEMENT_MESSAGE)
         p2_board = setup_board(board_size, ship_sizes2)
         n = 1
+        #repeat making attacks until get the winner
         while get_player_hp(p1_board) != 0 and get_player_hp(p2_board) != 0:
                 print(NEXT_TURN_GRAPHIC)
                 display_game(p1_board, p2_board, False)
@@ -26,6 +43,7 @@ def play_game() -> None:
                         print('PLAYER 2\'s turn!')
                         make_attack(p1_board)
                         n += 1
+        #game over
         print(GAME_OVER_GRAPHIC)
         print(get_winner(p1_board, p2_board),'won!')
         display_game(p1_board, p2_board, True)
@@ -34,9 +52,19 @@ def play_game() -> None:
 
 def num_hour() -> float:
         """
+        Pre-condition:
+                Finished the assignment alive
+
         Get hour spent on assignment 1
+
+        Parameter:
+                null
+
+        Return:
+                Float shows the hours used for assignment 1
         """
-        return
+        hour_used = 55.0
+        return hour_used
 
 
 def create_empty_board(board_size: int) -> list[str]:
@@ -347,10 +375,12 @@ def is_valid_coordinate_sequence(coordinate_sequence: str, ship_length: int,
 
         #split the sequence into separate strings(coordinates)
         coordinates = coordinate_sequence.split(',')
+        #determine whether the length of input list correct
         if len(coordinates) != ship_length:
                 tuple_output = (False, INVALID_COORDINATE_SEQUENCE_LENGTH)
         else:
                 for coordinate in coordinates:
+                        #use is_valid_coordinate function to determine the coordinate input
                         if is_valid_coordinate(coordinate, board_size)[0] == False:
                                 tuple_output = is_valid_coordinate(coordinate, board_size)
                                 return tuple_output
@@ -404,19 +434,31 @@ def setup_board(board_size: int, ship_sizes: list[int]) -> list[str]:
                 List of stings shows the board after placing ships
         """
         
+        #create an empty board
         board = create_empty_board(board_size)
+        #judge every ship_size in list ship_sizes
         for ship_size in ship_sizes:
+                #use an infinite while loop and onlly break when all tasks passed
                 while True:
+                        #display the board first
                         display_board(board, True)
+                        #then asked for coordinates input
                         coordinates = input('Enter a comma separated list of {} coordinates: '.format(ship_size))
+                        #use a if statement to determine whether it's a valid coordinate sequence
                         if is_valid_coordinate_sequence(coordinates, ship_size, board_size)[0] == True:
+                                #convert coordinates input into list of positions
                                 position_list = build_ship(coordinates)
+                                #use another if statement to determine whether the position asked can place a ship
                                 if can_place_ship(board, position_list) == True:
+                                        #only place the ship and break the while loop after those
+                                        #two if statements got all True
                                         place_ship(board, position_list)
                                         break
                                 else:
+                                        #print message for valid coordinate sequence but can't place ship
                                         print(INVALID_SHIP_PLACEMENT)
                         else:
+                                #print message for invalid coordinate sequence
                                 print(is_valid_coordinate_sequence(coordinates, ship_size, board_size)[1])
         return board
 
@@ -437,8 +479,10 @@ def get_winner(p1_board: list[str], p2_board: list[str]) -> Optional[str]:
                 A string shows the winner
         """
 
+        #get player's hp for each player
         player1_hp = get_player_hp(p1_board)
         player2_hp = get_player_hp(p2_board)
+        #get the winner by determine the value of each player's hp left
         if player1_hp == 0:
                 winner = 'PLAYER 2'
         elif player2_hp == 0:
@@ -463,9 +507,12 @@ def make_attack(target_board: list[str]) -> None:
                 None
         """
 
-
+        #set an infinite while loop
         while True:
+                #ask for the coordinate input
                 coordinate = input(TURN_INPUT_MESSAGE)
+                #determine whether the input coordinate is valid, only break the loop and
+                #return if the coordinate input is valid, if not, print the corresponding message
                 if is_valid_coordinate(coordinate, len(target_board))[0] == False:
                         print(is_valid_coordinate(coordinate, len(target_board))[1])
                 else:
