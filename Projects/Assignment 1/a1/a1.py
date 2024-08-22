@@ -151,7 +151,9 @@ def change_square(board: list[str], position: tuple[int,int],
         
     #sub the new square in and remove the old one
     row_changed = (row_get[0:position[1]] +
-                   new_square + row_get[(position[1]+1):])
+                   new_square +
+                   row_get[(position[1]+1):]
+                   )
         
     #put the changed row back into the board
     board[position[0]] = row_changed
@@ -174,9 +176,18 @@ def coordinate_to_position(coordinate: str) -> tuple[int,int]:
         A tuple shows the (row,colomn) position on board
     """
 
-    #store a mapping between first characters in coordinate string with there values
+    #store a mapping between first characters
+    #in coordinate string with there values
     dict_coordinate = {
-        'A': 0,'B': 1,'C': 2,'D': 3,'E': 4,'F': 5,'G': 6,'H': 7,'I': 8
+        'A': 0,
+        'B': 1,
+        'C': 2,
+        'D': 3,
+        'E': 4,
+        'F': 5,
+        'G': 6,
+        'H': 7,
+        'I': 8,
         }
         
     #get the tuple for return
@@ -202,11 +213,10 @@ def can_place_ship(board: list[str], ship: list[tuple[int,int]]) -> bool:
 
     #use for loop to determine every tuple in list 'ship'
     for position in ship:
-
         #if statement to determine whether square get is empty
         #if not empty, return 'False'
         if get_square(board,position) != '~':
-                        return False
+            return False
     #if empty, return 'True'
     return True
 
@@ -251,9 +261,11 @@ def attack(board: list[str], position: tuple[int, int]) -> None:
     """
 
     #attack success if there is a placed ship
-    if (get_square(board, position) == ACTIVE_SHIP_SQUARE or
-        get_square(board, position) == DEAD_SHIP_SQUARE):
-                change_square(board, position, DEAD_SHIP_SQUARE)
+    if (
+        get_square(board, position) == ACTIVE_SHIP_SQUARE
+        or get_square(board, position) == DEAD_SHIP_SQUARE
+    ):
+        change_square(board, position, DEAD_SHIP_SQUARE)
 
     #miss if there is no ship placed
     else:
@@ -288,6 +300,7 @@ def display_board(board: list[str],show_ships: bool) -> None:
             #replace ACTIVE_SHIP_SQUARE with EMPTY_SQUARE
             rows = rows.replace(ACTIVE_SHIP_SQUARE,EMPTY_SQUARE)
             print(row_num,ROW_SEPARATOR,rows, sep = "")
+
         else:
             print(row_num,ROW_SEPARATOR,rows, sep = "")
     return
@@ -321,7 +334,7 @@ def get_player_hp(board: list[str]) -> int:
 
 
 def display_game(p1_board: list[str], p2_board: list[str],
-                 show_ships: bool) -> None:
+    show_ships: bool) -> None:
     """
     Pre-coditions:
         null
@@ -343,7 +356,6 @@ def display_game(p1_board: list[str], p2_board: list[str],
         
     #determine the player1's hp
     if get_player_hp(p1_board) != 1:
-        
         life_p1 = 'lives'
     #determine the player2's hp
     if get_player_hp(p2_board) != 1:
@@ -405,13 +417,11 @@ def is_valid_coordinate_sequence(coordinate_sequence: str, ship_length: int,
 
     #split the sequence into separate strings(coordinates)
     coordinates = coordinate_sequence.split(',')
-        
     #determine whether the length of input list correct
     if len(coordinates) != ship_length:
         tuple_output = (False, INVALID_COORDINATE_SEQUENCE_LENGTH)
     else:
         for coordinate in coordinates:
-            
             #use is_valid_coordinate function to determine the coordinate input
             if is_valid_coordinate(coordinate, board_size)[0] == False:
                 tuple_output = is_valid_coordinate(coordinate, board_size)
@@ -438,10 +448,10 @@ def build_ship(coordinate_sequence: str) -> list[tuple[int,int]]:
 
     #split coordinate_sequence into short coordinate strings
     coordinates = coordinate_sequence.split(',')
-        
+    
     #set an empty list for positions storing
     position_list = []
-        
+    
     #determine every coordinate in the list coordinates
     for coordinate in coordinates:
         #use coordinate_to_position function to convert
@@ -470,24 +480,25 @@ def setup_board(board_size: int, ship_sizes: list[int]) -> list[str]:
         
     #create an empty board
     board = create_empty_board(board_size)
-        
+    
     #judge every ship_size in list ship_sizes
     for ship_size in ship_sizes:
-        
         #use an infinite while loop and onlly break when all tasks passed
         while True:
-        
             #display the board first
             display_board(board, True)
-                        
+            
             #then asked for coordinates input
             coordinates = input('Enter a comma separated list of '
-                                '{} coordinates: '.format(ship_size))
+                '{} coordinates: '.format(ship_size))
                         
             #use a if statement to determine whether
             #it's a valid coordinate sequence
-            if (is_valid_coordinate_sequence(coordinates, ship_size,
-                                             board_size)[0] == True):
+            if (
+                is_valid_coordinate_sequence(
+                    coordinates, ship_size, board_size
+                    )[0] == True
+            ):
             #convert coordinates input
             #into list of positions
                 position_list = build_ship(coordinates)
@@ -495,7 +506,6 @@ def setup_board(board_size: int, ship_sizes: list[int]) -> list[str]:
             #use another if statement to determine whether
             #the position asked can place a ship
                 if can_place_ship(board, position_list) == True:
-                    
                     #only place the ship and break the
                     #while loop after those two if
                     #statements got all True
@@ -503,16 +513,17 @@ def setup_board(board_size: int, ship_sizes: list[int]) -> list[str]:
                     break
                 
                 else:
-                    
                     #print message for valid coordinate
                     #sequence but can't place ship
                     print(INVALID_SHIP_PLACEMENT)
 
             else:
-                
                 #print message for invalid coordinate sequence
-                print(is_valid_coordinate_sequence(coordinates,
-                                                   ship_size, board_size)[1])
+                print(
+                    is_valid_coordinate_sequence(
+                        coordinates, ship_size, board_size
+                        )[1]
+                    )
     return board
 
 
@@ -571,8 +582,12 @@ def make_attack(target_board: list[str]) -> None:
         #if the coordinate input is valid,
         #if not, print the corresponding message
         if is_valid_coordinate(coordinate, len(target_board))[0] == False:
-            print(is_valid_coordinate(coordinate,
-                                      len(target_board))[1])
+            print(
+                is_valid_coordinate(
+                    coordinate,
+                    len(target_board)
+                    )[1]
+                )
         else:
             position = coordinate_to_position(coordinate)
             attack(target_board, position)
