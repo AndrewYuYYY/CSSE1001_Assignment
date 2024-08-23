@@ -122,7 +122,7 @@ def get_square(board: list[str], position: tuple[int,int]) ->str:
         A string shows the element find in that position
     """
 
-    #get the first int in tuple 'position' th string in list
+    #get （the first int in tuple 'position'）th string in list
     #'board' and get the second int in tuple 'position' th
     #element in string 'board_rows'
     square_get = board[position[0]][position[1]]
@@ -215,7 +215,7 @@ def can_place_ship(board: list[str], ship: list[tuple[int,int]]) -> bool:
     for position in ship:
         #if statement to determine whether square get is empty
         #if not empty, return 'False'
-        if get_square(board,position) != '~':
+        if get_square(board,position) != EMPTY_SQUARE:
             return False
     #if empty, return 'True'
     return True
@@ -260,11 +260,11 @@ def attack(board: list[str], position: tuple[int, int]) -> None:
         None
     """
 
-    #attack success if there is a placed ship
-    if (
-        get_square(board, position) == ACTIVE_SHIP_SQUARE
-        or get_square(board, position) == DEAD_SHIP_SQUARE
-    ):
+    #replace the current square with DEAD_SHIP_SQUARE
+    #if there is a placed ship or already success
+    if (get_square(board, position) == ACTIVE_SHIP_SQUARE
+        or get_square(board, position) == DEAD_SHIP_SQUARE):
+        
         change_square(board, position, DEAD_SHIP_SQUARE)
 
     #miss if there is no ship placed
@@ -320,7 +320,7 @@ def get_player_hp(board: list[str]) -> int:
         An integer shows the number of active ships
     """
 
-    #give initial value 0 to variable player_hp
+    #set an initial value for hp counting
     player_hp = 0
         
     #use loops to determine every character in 'board'
@@ -334,7 +334,7 @@ def get_player_hp(board: list[str]) -> int:
 
 
 def display_game(p1_board: list[str], p2_board: list[str],
-    show_ships: bool) -> None:
+                 show_ships: bool) -> None:
     """
     Pre-coditions:
         null
@@ -496,8 +496,8 @@ def setup_board(board_size: int, ship_sizes: list[int]) -> list[str]:
             #it's a valid coordinate sequence
             if (
                 is_valid_coordinate_sequence(
-                    coordinates, ship_size, board_size
-                    )[0] == True
+                coordinates, ship_size, board_size
+                )[0] == True
             ):
             #convert coordinates input
             #into list of positions
@@ -521,9 +521,9 @@ def setup_board(board_size: int, ship_sizes: list[int]) -> list[str]:
                 #print message for invalid coordinate sequence
                 print(
                     is_valid_coordinate_sequence(
-                        coordinates, ship_size, board_size
-                        )[1]
-                    )
+                    coordinates, ship_size, board_size
+                    )[1]
+                )
     return board
 
 
@@ -584,10 +584,9 @@ def make_attack(target_board: list[str]) -> None:
         if is_valid_coordinate(coordinate, len(target_board))[0] == False:
             print(
                 is_valid_coordinate(
-                    coordinate,
-                    len(target_board)
-                    )[1]
-                )
+                coordinate, len(target_board)
+                )[1]
+            )
         else:
             position = coordinate_to_position(coordinate)
             attack(target_board, position)
