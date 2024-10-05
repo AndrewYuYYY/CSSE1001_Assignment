@@ -82,10 +82,16 @@ class Weapon:
         #Use two for-loops to check all the positions in the weapon's range.
         #Only in a single direction.
         for dx in range(-self._range, self._range + 1):
-            targets.append((x+dx, y))
+            if dx == 0:
+                continue
+            else:
+                targets.append((x+dx, y))
 
         for dy in range(-self._range, self._range + 1):
-            targets.append((x, y+dy))
+            if dy == 0:
+                continue
+            else:
+                targets.append((x, y+dy))
 
         return targets
 
@@ -162,6 +168,24 @@ class HealingRock(Weapon):
         self._effect = {'healing': 2}
         self._range = 2
 
+
+
+class Tile:
+    """
+    A class to display individual positions in the dungeon.
+    """
+
+    def __init__(self, symbol: str, is_blocking: bool) -> None:
+        """
+        Constructor for Tile class.
+
+        Parameters:
+            symbol: The symbol of the tile.
+            is_blocking: A boolean value to show if the tile is blocking.
+        """
+
+        self._symbol = symbol
+        self._is_blocking = is_blocking
 
 class view():
     def __init__(self, ):
