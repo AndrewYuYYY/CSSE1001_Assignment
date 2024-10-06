@@ -507,6 +507,7 @@ class Entity:
         return f"{self.__class__.__name__}({self._max_health})"
 
 
+
 class Player(Entity):
     """
     A class to display the details of the player in the game.
@@ -522,6 +523,103 @@ class Player(Entity):
         self._symbol = PLAYER_SYMBOL
 
 
+
+class Slug(Entity):
+    """
+    A class to display the details of the slugs in the game.
+    """
+
+    def __init__(self, max_health: int) -> None:
+        """
+        Constructor for Slug class.
+        """
+
+        # Use super() to call the __init__ method from the Entity class.
+        super().__init__(max_health)
+        self._symbol = SLUG_SYMBOL
+        self._can_move = True #assuming the slug can move.
+
+
+    def choose_move(self,
+                    candidates: list[Position],
+                    current_position: Position,
+                    player_position: Position
+                    ) -> Position:
+        """
+        Returns the next position of the slug.
+        (Need to be implemented in the subclasses)
+        """
+
+        #Raise an error if this method is not override with
+        #a valid implementation in the subclasses.
+        raise NotImplementedError(
+            'Slug subclasses must implement a choose_move method.'
+        )
+
+
+    def can_move(self) -> bool:
+        """
+        Returns True if the slug can move on this turn, otherwise False.
+
+        Return:
+            A boolean value shows if the slug can move.
+        """
+
+        return self._can_move
+
+
+    def end_turn(self) -> None:
+        """
+        Registers the slug has completed its turn.
+        """
+
+        #Use if statement to judge if the slug can move,
+        #if so, set the value of can_move to False,
+        #Otherwise, set the value of can_move to True.
+        if self._can_move:
+            self._can_move = False
+        else:
+            self._can_move = True
+
+
+
+class NiceSlug(Slug):
+    """
+    A class to display the details of the NiceSlug in the game.
+    """
+
+    def __init__(self) -> None:
+        """
+        Constructor for NiceSlug class.
+        """
+
+        #Use super() to call the __init__ method from the Slug class.
+        super().__init__(max_health=10)
+        #The default weapon of the NiceSlug is HealingRock.
+        self._weapon = HealingRock()
+        self._symbol = NICE_SLUG_SYMBOL
+
+
+    def choose_move(self,
+                    candidates: list[Position],
+                    current_position: Position,
+                    player_position: Position
+                    ) -> Position:
+        """
+        Returns the next position of the slug.
+        """
+
+        #The NiceSlug always stays in the same position.
+        return current_position
+
+
+    def __repr__(self):
+        """
+        Returns the instance which can be used to
+        create a new identical NiceSlug instance.
+        """
+        
+        return f"{self.__class__.__name__}()"
 
 
 
