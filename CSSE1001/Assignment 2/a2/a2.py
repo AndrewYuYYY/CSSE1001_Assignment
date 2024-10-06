@@ -270,10 +270,13 @@ class Tile:
 
 def create_tile(symbol: str) -> Tile:
     """
+    Pre-condition:
+    symbol is a string.
+
     Returns a new Tile instance based on the symbol.
 
     Parameters:
-        symbol: The symbol of the tile.
+        symbol: A string shows the symbol of the tile.
 
     Return:
         A new Tile instance.
@@ -284,22 +287,19 @@ def create_tile(symbol: str) -> Tile:
     new_tile = Tile(FLOOR_TILE, False)
 
     #Use if-elif statements to judge the symbol input,
-    #set the weapon if there is one and return the Tile instance.
+    #if the symbol is not one of the weapon symbols, return the tile instance.
+    #Otherwise, set the weapon on the tile and return the tile instance.
     if symbol == WALL_TILE:
         return Tile(symbol, True)
     elif symbol == GOAL_TILE:
         return Tile(symbol, False)
     elif symbol == POISON_DART_SYMBOL:
         new_tile.set_weapon(PoisonDart())
-        return Tile(FLOOR_TILE, False)
     elif symbol == POISON_SWORD_SYMBOL:
         new_tile.set_weapon(PoisonSword())
-        return Tile(FLOOR_TILE, False)
     elif symbol == HEALING_ROCK_SYMBOL:
         new_tile.set_weapon(HealingRock())
-        return Tile(FLOOR_TILE, False)
-    else:
-        return Tile(FLOOR_TILE, False)
+    return new_tile
 
 
 class view():
