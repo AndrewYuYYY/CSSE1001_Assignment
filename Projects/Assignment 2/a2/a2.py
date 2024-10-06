@@ -82,6 +82,7 @@ class Weapon:
         #Use two for-loops to check all the positions in the weapon's range.
         #Only in a single direction.
         for dx in range(-self._range, self._range + 1):
+            # If statement used to exclude the current position.
             if dx == 0:
                 continue
             else:
