@@ -10,6 +10,8 @@ def main():
     # Implement your main function here
     pass
 
+
+
 class Weapon:
     """
     A class to display details of a weapon in the game.
@@ -26,7 +28,8 @@ class Weapon:
             range: The range of the weapon.
         """
 
-        self._symbol = 'W'
+        #Set a default value for the Weapon class variables.
+        self._symbol = WEAPON_SYMBOL
         self._name = 'AbstractWeapon'
         self._effect = {}
         self._range = 0
@@ -42,6 +45,7 @@ class Weapon:
 
         return f"{self._name}"
 
+
     def get_symbol(self) -> str:
         """
         Returns the symbol of the weapon.
@@ -52,6 +56,7 @@ class Weapon:
 
         return f"{self._symbol}"
 
+
     def get_effect(self) -> dict[str, int]:
         """
         Returns the effect of the weapon.
@@ -61,6 +66,7 @@ class Weapon:
         """
 
         return self._effect
+
 
     def get_targets(self, position: Position) -> list[Position]:
         """
@@ -79,15 +85,15 @@ class Weapon:
         # Create an empty list to store the targets.
         targets = []
 
-        #Use two for-loops to check all the positions in the weapon's range.
+        #Use two for-loops to judge all the positions in the weapon's range.
         #Only in a single direction.
         for dx in range(-self._range, self._range + 1):
-            # If statement used to exclude the current position.
+            # If statements used to exclude the current position.
             if dx == 0:
                 continue
             else:
                 targets.append((x+dx, y))
-
+        #Judge for y direction.
         for dy in range(-self._range, self._range + 1):
             if dy == 0:
                 continue
@@ -95,6 +101,7 @@ class Weapon:
                 targets.append((x, y+dy))
 
         return targets
+
 
     def __str__(self) -> str:
         """
@@ -104,6 +111,7 @@ class Weapon:
             A string of the name of the weapon.
         """
         return f"{self._name}"
+
 
     def __repr__(self) -> str:
         """
@@ -129,10 +137,11 @@ class PoisonDart(Weapon):
 
         # Use super() to call the __init__ method from the parent class.
         super().__init__()
-        self._symbol = 'D'
+        self._symbol = POISON_DART_SYMBOL
         self._name = 'PoisonDart'
         self._effect = {'poison': 2}
         self._range = 2
+
 
 
 class PoisonSword(Weapon):
@@ -147,10 +156,12 @@ class PoisonSword(Weapon):
 
         # Use super() to call the __init__ method from the parent class.
         super().__init__()
-        self._symbol = 'S'
+        self._symbol = POISON_SWORD_SYMBOL
         self._name = 'PoisonSword'
         self._effect = {'damage': 2, 'poison': 1}
         self._range = 1
+
+
 
 class HealingRock(Weapon):
     """
@@ -164,7 +175,7 @@ class HealingRock(Weapon):
 
         # Use super() to call the __init__ method from the parent class.
         super().__init__()
-        self._symbol = 'H'
+        self._symbol = HEALING_ROCK_SYMBOL
         self._name = 'HealingRock'
         self._effect = {'healing': 2}
         self._range = 2
@@ -187,6 +198,109 @@ class Tile:
 
         self._symbol = symbol
         self._is_blocking = is_blocking
+        #Set the default value of the weapon as None.
+        self._weapon = None
+
+
+    def is_blocking(self) -> bool:
+        """
+        Returns the status of the tile.
+
+        Return:
+            A boolean value to show if the tile is blocking.
+        """
+
+        return self._is_blocking
+
+
+    def get_weapon(self) -> Optional[Weapon]:
+        """
+        Returns the weapon on the tile if there is one, otherwise None.
+
+        Return:
+            A Weapon object or None.
+        """
+
+        return self._weapon
+
+
+    def set_weapon(self, weapon: Weapon) ->None:
+        """
+        Sets the weapon on the current tile.
+
+        Parameters:
+            weapon: The weapon need to be set on the tile.
+        """
+
+        #Reset the value of the weapon to be the input weapon.
+        self._weapon = weapon
+
+
+    def remove_weapon(self) -> None:
+        """
+        Removes the weapon on the current tile.
+        """
+
+        self._symbol = FLOOR_TILE
+
+
+    def __str__(self) -> str:
+        """
+        Returns the symbol of the tile.
+
+        Return:
+            A string of the symbol of the tile.
+        """
+
+        return f"{self._symbol}"
+
+
+    def __repr__(self) -> str:
+        """
+        Returns the instance which can be used to
+        create a new identical tile instance.
+
+        Return:
+            A string of the instance.
+        """
+
+        return f"{self.__class__.__name__}('{self._symbol}', {self._is_blocking})"
+
+
+
+def create_tile(symbol: str) -> Tile:
+    """
+    Returns a new Tile instance based on the symbol.
+
+    Parameters:
+        symbol: The symbol of the tile.
+
+    Return:
+        A new Tile instance.
+    """
+
+    #Create a default new tile instance with
+    #symbol of FLOOR_TILE and is_blocking as False.
+    new_tile = Tile(FLOOR_TILE, False)
+
+    #Use if-elif statements to judge the symbol input,
+    #set the weapon if there is one and return the Tile instance.
+    if symbol == WALL_TILE:
+        return Tile(symbol, True)
+    elif symbol == GOAL_TILE:
+        return Tile(symbol, False)
+    elif symbol == POISON_DART_SYMBOL:
+        new_tile.set_weapon(PoisonDart())
+        return Tile(FLOOR_TILE, False)
+    elif symbol == POISON_SWORD_SYMBOL:
+        new_tile.set_weapon(PoisonSword())
+        return Tile(FLOOR_TILE, False)
+    elif symbol == HEALING_ROCK_SYMBOL:
+        new_tile.set_weapon(HealingRock())
+        return Tile(FLOOR_TILE, False)
+    else:
+        return Tile(FLOOR_TILE, False)
+
 
 class view():
     def __init__(self, ):
