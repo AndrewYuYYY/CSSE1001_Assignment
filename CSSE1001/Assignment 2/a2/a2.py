@@ -687,6 +687,16 @@ class AngrySlug(Slug):
                 euclidean_distance(target_position, player_position)
             ):
                 target_position = position
+            #If the Euclidean distance between this position
+            #and the player_position is equal to the distance between
+            #the target_position and the player_position,
+            #set the target_position as the smaller tuple.
+            elif (
+                euclidean_distance(position, player_position) ==
+                euclidean_distance(target_position, player_position)
+            ):
+                if position < target_position:
+                    target_position = position
 
         return target_position
 
@@ -703,6 +713,80 @@ class AngrySlug(Slug):
         return f"{self.__class__.__name__}()"
 
 
+
+class ScaredSlug(Slug):
+    """
+    A subclass to display the details of the ScaredSlug in the game.
+    """
+
+    def __init__(self) -> None:
+        """
+        Constructor for ScaredSlug subclass.
+        """
+
+        #Use super() to call the __init__ method from the Slug subclass.
+        super().__init__(max_health=3)
+        #The default weapon of the ScaredSlug is PoisonDart.
+        self._weapon = PoisonDart()
+        self._symbol = SCARED_SLUG_SYMBOL
+
+
+    def choose_move(self,
+                    candidates: list[Position],
+                    current_position: Position,
+                    player_position: Position
+                    ) -> Position:
+        """
+        Returns the next position of this slug.
+        """
+
+        #Set the default target position as the current position.
+        target_position = current_position
+
+        #Use for-loop to judge all the positions in the candidates list.
+        for position in candidates:
+            #If the Euclidean distance between this position
+            #and the player_position is larger than the distance between
+            #the target_position and the player_position,
+            #set the target_position as this position.
+            if (
+                euclidean_distance(position, player_position) >
+                euclidean_distance(target_position, player_position)
+            ):
+                target_position = position
+            #If the Euclidean distance between this position
+            #and the player_position is equal to the distance between
+            #the target_position and the player_position,
+            #set the target_position as the larger tuple.
+            elif (
+                euclidean_distance(position, player_position) ==
+                euclidean_distance(target_position, player_position)
+            ):
+                if position > target_position:
+                    target_position = position
+
+        return target_position
+
+
+    def __repr__(self) -> str:
+        """
+        Returns the instance which can be used to
+        create a new identical NiceSlug instance.
+
+        Return:
+            A string of the instance.
+        """
+
+        return f"{self.__class__.__name__}()"
+
+
+
+class SlugDungeonModel:
+    """
+    A class to model the logic of the game.
+    """
+
+    
 
 
 
