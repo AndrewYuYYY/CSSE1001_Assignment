@@ -786,7 +786,145 @@ class SlugDungeonModel:
     A class to model the logic of the game.
     """
 
-    
+    def __init__(self, tiles: list[list[Tile]], slugs: dict[Position, Slug],
+                 player: Player, player_position: Position) -> None:
+        """
+        Constructor for SlugDungeonModel class.
+        """
+
+        self._tiles = tiles
+        self._slugs = slugs
+        self._player = player
+        self._player_position = player_position
+
+
+    def get_tiles(self) -> list[list[Tile]]:
+        """
+        Returns the tiles of the game.
+
+        Return:
+            A list of list of Tile instances.
+        """
+
+        return self._tiles
+
+
+    def get_slugs(self) -> dict[Position, Slug]:
+        """
+        Returns the slugs in the game.
+
+        Return:
+            A dictionary of slug positions and Slug instances.
+        """
+
+        return self._slugs
+
+
+    def get_player(self) -> Player:
+        """
+        Returns the player in the game.
+
+        Return:
+            A Player instance.
+        """
+
+        return self._player
+
+
+    def get_player_position(self) -> Position:
+        """
+        Returns the current position of the player.
+
+        Return:
+            A tuple of the position of the player.
+        """
+
+        return self._player_position
+
+
+    def get_tile(self, position: Position) -> Tile:
+        """
+        Returns the tile at the given position.
+
+        Parameters:
+            position: The position of the tile.
+
+        Return:
+            A Tile instance.
+        """
+
+        return self._tiles[position[0]][position[1]]
+
+
+    def get_dimensions(self) -> tuple[int, int]:
+        """
+        Returns the dimensions of the dungeon.
+
+        Return:
+            A tuple of the dimensions of the dungeon.
+        """
+
+        return len(self._tiles), len(self._tiles[0])
+
+
+    def get_valid_slug_positions(self, slug: Slug) -> list[Position]:
+        """
+        Pre-condition:
+            slug is ine of the alive slugs in the game.
+
+        Returns the valid positions for the slug to move to.
+
+        Parameters:
+            slug: The Slug instance.
+
+        Return:
+            A list of valid positions.
+        """
+
+        #Set an empty list to store the valid next positions.
+        valid_positions = []
+
+        #Use if statement to judge if the input slug can move.
+        if slug.can_move():
+            #Get the current position of the input slug.
+            for slug_position, slug_type in self._slugs.items():
+                #Use if statement to judge if the input slug is the same
+                #type of slug as in the dictionary of slugs, if so, append
+                #the corresponding position into the valid_positions list.
+                if slug == slug_type:
+                    current_position = slug_position
+                    #Append the current position into the valid_positions list.
+                    valid_positions.append(current_position)
+
+                    #Set the available movements of the slug.
+                    movements = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+                    for dx, dy in movements:
+                        #Get the possible next positions of the slug.
+                        next_position = (
+                            current_position[0] + dx,
+                            current_position[1] + dy
+                        )
+
+                        #Use if statement to judge if
+                        #the next position is inside the dungeon.
+                        if (
+                            0 <= next_position[0] < len(self._tiles) and
+                            0 <= next_position[1] < len(self._tiles[0])
+                        ):
+                            #Use if statement to judge if the next position
+                            #is not blocking and not occupied by other slugs,
+                            #and not occupied by the player.
+                            if (
+                                not self.get_tile(next_position).is_blocking()
+                                and next_position not in self._slugs.keys()
+                                and next_position is not self._player_position
+                            ):
+                                #Append the next position into
+                                #the valid_positions list.
+                                valid_positions.append(next_position)
+
+        return valid_positions
 
 
 
