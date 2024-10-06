@@ -127,7 +127,7 @@ class Weapon:
 
 class PoisonDart(Weapon):
     """
-    A class to display details of the PoisonDart in the game.
+    A subclass to display details of the PoisonDart in the game.
     """
 
     def __init__(self) -> None:
@@ -146,7 +146,7 @@ class PoisonDart(Weapon):
 
 class PoisonSword(Weapon):
     """
-    A class to display details of the PoisonSword in the game.
+    A subclass to display details of the PoisonSword in the game.
     """
 
     def __init__(self) -> None:
@@ -165,7 +165,7 @@ class PoisonSword(Weapon):
 
 class HealingRock(Weapon):
     """
-    A class to display details of the HealingRock in the game.
+    A subclass to display details of the HealingRock in the game.
     """
 
     def __init__(self) -> None:
@@ -526,12 +526,12 @@ class Player(Entity):
 
 class Slug(Entity):
     """
-    A class to display the details of the slugs in the game.
+    A subclass to display the details of the slugs in the game.
     """
 
     def __init__(self, max_health: int) -> None:
         """
-        Constructor for Slug class.
+        Constructor for Slug subclass.
         """
 
         # Use super() to call the __init__ method from the Entity class.
@@ -585,15 +585,15 @@ class Slug(Entity):
 
 class NiceSlug(Slug):
     """
-    A class to display the details of the NiceSlug in the game.
+    A subclass to display the details of the NiceSlug in the game.
     """
 
     def __init__(self) -> None:
         """
-        Constructor for NiceSlug class.
+        Constructor for NiceSlug subclass.
         """
 
-        #Use super() to call the __init__ method from the Slug class.
+        #Use super() to call the __init__ method from the Slug subclass.
         super().__init__(max_health=10)
         #The default weapon of the NiceSlug is HealingRock.
         self._weapon = HealingRock()
@@ -606,20 +606,105 @@ class NiceSlug(Slug):
                     player_position: Position
                     ) -> Position:
         """
-        Returns the next position of the slug.
+        Returns the next position of this slug.
         """
 
         #The NiceSlug always stays in the same position.
         return current_position
 
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Returns the instance which can be used to
         create a new identical NiceSlug instance.
+
+        Return:
+            A string of the instance.
         """
-        
+
         return f"{self.__class__.__name__}()"
+
+
+
+#Define a function to calculate the Euclidean distance between two positions.
+def euclidean_distance(position1: Position, position2: Position) -> float:
+    """
+    Returns the Euclidean distance between two positions.
+
+    Parameters:
+        position1: The first position.
+        position2: The second position.
+
+    Return:
+        A float of the Euclidean distance between two positions.
+    """
+
+    #Calculate the Euclidean distance between two positions.
+    return (
+            ((position1[0] - position2[0])**2 +
+            (position1[1] - position2[1])**2)**0.5
+    )
+
+
+
+class AngrySlug(Slug):
+    """
+    A subclass to display the details of the AngrySlug in the game.
+    """
+
+    def __init__(self) -> None:
+        """
+        Constructor for AngrySlug subclass.
+        """
+
+        #Use super() to call the __init__ method from the Slug subclass.
+        super().__init__(max_health=5)
+        #The default weapon of the AngrySlug is PoisonSword.
+        self._weapon = PoisonSword()
+        self._symbol = ANGRY_SLUG_SYMBOL
+
+
+    def choose_move(self,
+                    candidates: list[Position],
+                    current_position: Position,
+                    player_position: Position
+                    ) -> Position:
+        """
+        Returns the next position of this slug.
+        """
+
+        #Set the default target position as the current position.
+        target_position = current_position
+
+        #Use for-loop to judge all the positions in the candidates list.
+        for position in candidates:
+            #If the Euclidean distance between this position
+            #and the player_position is smaller than the distance between
+            #the target_position and the player_position,
+            #set the target_position as this position.
+            if (
+                euclidean_distance(position, player_position) <
+                euclidean_distance(target_position, player_position)
+            ):
+                target_position = position
+
+        return target_position
+
+
+    def __repr__(self) -> str:
+        """
+        Returns the instance which can be used to
+        create a new identical NiceSlug instance.
+
+        Return:
+            A string of the instance.
+        """
+
+        return f"{self.__class__.__name__}()"
+
+
+
+
 
 
 
