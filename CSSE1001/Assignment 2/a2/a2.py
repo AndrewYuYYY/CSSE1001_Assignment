@@ -507,6 +507,22 @@ class Entity:
         return f"{self.__class__.__name__}({self._max_health})"
 
 
+class Player(Entity):
+    """
+    A class to display the details of the player in the game.
+    """
+
+    def __init__(self, max_health: int) -> None:
+        """
+        Constructor for Player class.
+        """
+
+        # Use super() to call the __init__ method from the Entity class.
+        super().__init__(max_health)
+        self._symbol = PLAYER_SYMBOL
+
+
+
 
 
 class view():
