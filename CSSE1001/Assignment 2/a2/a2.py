@@ -218,7 +218,7 @@ class Tile:
         Returns the weapon on the tile if there is one, otherwise None.
 
         Return:
-            A Weapon object or None.
+            A Weapon object shows the weapon on the tile or None.
         """
 
         return self._weapon
@@ -300,6 +300,213 @@ def create_tile(symbol: str) -> Tile:
     elif symbol == HEALING_ROCK_SYMBOL:
         new_tile.set_weapon(HealingRock())
     return new_tile
+
+
+
+class Entity:
+    """
+    A class to display the details of entities in the game.
+    """
+
+    def __init__(self, max_health: int) -> None:
+        """
+        Constructor for Entity class.
+
+        Parameters:
+            max_health: A integer shows the maximum health of the entity.
+        """
+
+        #Set the default value of the Entity class variables.
+        self._max_health = max_health #used for reset health
+        self._health = max_health
+        self._poison = 0
+        self._weapon = None
+        self._symbol = ENTITY_SYMBOL
+
+    def get_symbol(self) -> str:
+        """
+        Returns the symbol of the entity.
+
+        Return:
+            A string of the symbol of the entity.
+        """
+
+        return self._symbol
+
+
+    def get_name(self) -> str:
+        """
+        Returns the name of the entity.
+
+        Return:
+            A string of the name of the entity.
+        """
+
+        return f"{self.__class__.__name__}"
+
+
+    def get_health(self) -> int:
+        """
+        Returns the current health of the entity.
+
+        Return:
+            An integer of the current health of the entity.
+        """
+
+        return self._health
+
+
+    def get_poison(self) -> int:
+        """
+        Returns the current poison state of the entity.
+
+        Return:
+            An integer of the current poison state of the entity.
+        """
+
+        return self._poison
+
+
+    def get_weapon(self) -> Optional[Weapon]:
+        """
+        Returns the weapon of the entity.
+
+        Return:
+            A Weapon object shows the weapon hold be the entity or None.
+        """
+
+        return self._weapon
+
+
+    def equip(self, weapon: Weapon) -> None:
+        """
+        Equips the weapon to the entity.
+
+        Parameters:
+            weapon: The weapon object need to be equipped to the entity.
+        """
+
+        #Set the weapon of the entity to be the input weapon.
+        self._weapon = weapon
+
+
+    def get_weapon_targets(self, position: Position) -> list[Position]:
+        """
+        Returns the list of all positions this entity
+        can attack with the weapon.
+
+        Parameters:
+            position: The position which the entity currently at.
+
+        Return:
+            A list of positions in attack range,
+            if no weapon, return an empty list.
+        """
+
+        #If the entity does not hold a weapon, return an empty list.
+        if self._weapon is None:
+            return []
+
+        #Otherwise, return the available targets of the weapon.
+        return self._weapon.get_targets(position)
+
+
+    def get_weapon_effect(self) -> dict[str, int]:
+        """
+        Returns the effect of the weapon hold by the entity.
+
+        Return:
+            A dictionary of the effects of the weapon.
+        """
+
+        #If the entity does not hold a weapon, return an empty dictionary.
+        if self._weapon is None:
+            return {}
+
+        #Otherwise, return the effects of the weapon.
+        return self._weapon.get_effect()
+
+
+    def apply_effects(self, effects: dict[str, int]) -> None:
+        """
+        Applies the effects to the entity.
+
+        Parameters:
+            effects: A dictionary of the effects active weapon had.
+        """
+
+        #Use for-loop to repeat looking all the effects
+        #in the input effects dictionary.
+        for effect, amount in effects.items():
+            #Use if statement to judge the effect type
+            #and apply the amount of corresponding effect.
+            if effect == 'damage':
+                self._health -= amount
+                #Use if statement to judge if the health is below 0,
+                #if so, set the health to 0.
+                if self._health < 0:
+                    self._health = 0
+            elif effect == 'healing':
+                self._health += amount
+                #Use if statement to judge if the health is above
+                #the max health, if so, set the health to the max health.
+                if self._health > self._max_health:
+                    self._health = self._max_health
+            elif effect == 'poison':
+                self._poison += amount
+
+
+    def apply_poison(self) -> None:
+        """
+        Applies the amount of poison effect to the entity.
+        """
+
+        #Use if statement to judge if the poison effect will be applied.
+        if self._health > 0 and self._poison > 0:
+            #Reduce the health of entity by the amount of poison state.
+            self._health -= self._poison
+            # Use if statement to judge if the health is below 0,
+            # if so, set the health to 0.
+            if self._health < 0:
+                self._health = 0
+            #Reduce the poison state by 1.
+            self._poison -= 1
+
+
+    def is_alive(self) -> bool:
+        """
+        Returns True if the entity is alive, otherwise False.
+
+        Return:
+            A boolean value shows if the entity is alive.
+        """
+
+        return self._health > 0
+
+
+    def __str__(self) -> str:
+        """
+        Returns the name of the entity.
+
+        Return:
+            A string of the name of the entity.
+        """
+
+        return f"{self.__class__.__name__}"
+
+
+    def __repr__(self) -> str:
+        """
+        Returns the instance which can be used to
+        create a new identical entity instance.
+
+        Return:
+            A string of the instance.
+        """
+
+        return f"{self.__class__.__name__}({self._max_health})"
+
+
 
 
 class view():
