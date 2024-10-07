@@ -927,6 +927,59 @@ class SlugDungeonModel:
         return valid_positions
 
 
+    def perform_attack(self, entity: Entity, position: Position) -> None:
+        """
+        Performs an attack by the input entity at the input position.
+
+        Parameters:
+            entity: The Entity instance.
+            position: The position of this entity.
+        """
+
+        #Get the weapon hold by this entity.
+        weapon = entity.get_weapon()
+
+        #Use if statement to judge if the entity has a weapon.
+        if weapon is not None:
+            #Get the available targets in the weapon's range.
+            targets = weapon.get_targets(position)
+
+            #Use for loop to judge all the targets in the targets list.
+            for target in targets:
+
+                #Use if statement to make sure the target position is
+                #inside the dungeon.
+                if (
+                    0 <= target[0] < len(self._tiles) and
+                    0 <= target[1] < len(self._tiles[0])
+                ):
+                    #Use if statement to judge if the target position
+                    #is occupied by a slug and the attacker is the player.
+                    if (
+                        target in self._slugs.keys() and
+                        isinstance(entity, Player)
+                    ):
+                        #Get the slug in the target position.
+                        slug = self._slugs[target]
+                        #Get the effect of the weapon.
+                        effects = weapon.get_effect()
+                        #Apply the effect to the slug.
+                        slug.apply_effects(effects)
+                    #Use if statement to judge if the target position
+                    #is occupied by the player and the attacker is a slug.
+                    elif(
+                        target == self._player_position and
+                        isinstance(entity, Slug)
+                    ):
+                        #Get the effect of the weapon.
+                        effects = weapon.get_effect()
+                        #Apply the effects to the player.
+                        self._player.apply_effects(effects)
+
+
+
+
+
 
 
 
