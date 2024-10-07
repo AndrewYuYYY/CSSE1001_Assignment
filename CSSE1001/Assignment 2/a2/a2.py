@@ -202,6 +202,17 @@ class Tile:
         self._weapon = None
 
 
+    def get_symbol(self) -> str:
+        """
+        Returns the symbol of the tile.
+
+        Return:
+            A string of the symbol of the tile.
+        """
+
+        return self._symbol
+
+
     def is_blocking(self) -> bool:
         """
         Returns the status of the tile.
@@ -870,7 +881,7 @@ class SlugDungeonModel:
     def get_valid_slug_positions(self, slug: Slug) -> list[Position]:
         """
         Pre-condition:
-            slug is ine of the alive slugs in the game.
+            slug is in of the alive slugs in the game.
 
         Returns the valid positions for the slug to move to.
 
@@ -977,6 +988,188 @@ class SlugDungeonModel:
                         self._player.apply_effects(effects)
 
 
+    def end_turn(self) -> None:
+        """
+        Handles the steps should occur after the player moved.
+        """
+
+        #Apply the player's poison.
+        self._player.apply_poison()
+
+        #Set a new dictionary for storing alive slugs.
+        alive_slugs = {}
+
+        #Use for loop to judge all the slugs in the slugs dictionary.
+        for slug_position, slug in self._slugs.items():
+            #Apply the poison to the slugs.
+            slug.apply_poison()
+            #Use if statement to judge if the slug is alive
+            #after applying poison.
+            if not slug.is_alive():
+                #Set the tile to have the weapon of the dead slug if any.
+                Tile.set_weapon(
+                    self.get_tile(slug_position),
+                    slug.get_weapon()
+                )
+
+            else:
+                #Append the alive slug into the alive_slugs dictionary.
+                alive_slugs[slug_position] = slug
+
+        #Set a new dictionary for storing the slugs after moving.
+        moved_slugs = {}
+        #Use for loop to let all alive slugs to move and attack.
+        for slug_position, slug in alive_slugs.items():
+            #Use if statement to judge if the slug can move.
+            if slug.can_move():
+                new_slug_position = slug.choose_move(
+                    self.get_valid_slug_positions(slug),
+                    slug_position,
+                    self._player_position
+                )
+
+                moved_slugs[new_slug_position] = slug
+                #Slug attacks
+                self.perform_attack(slug, new_slug_position)
+
+            else:
+                moved_slugs[slug_position] = slug
+
+            #State the slug has completed its turn,
+            #used for toggle the can_move status.
+            slug.end_turn()
+
+        #Update the slugs dictionary.
+        self._slugs = moved_slugs
+
+
+    def handle_player_move(self, position_delta: Position) -> None:
+        """
+        Handles the player's move.
+        """
+
+        #Get the possible new position of the player.
+        player_new_position = (
+            self._player_position[0] + position_delta[0],
+            self._player_position[1] + position_delta[1]
+        )
+
+
+        #Use if statement to judge if the new position is inside the dungeon.
+        if (
+            0 <= player_new_position[0] < len(self._tiles) and
+            0 <= player_new_position[1] < len(self._tiles[0])
+        ):
+            #Use if statement to judge if the new position is not blocking.
+            if not self.get_tile(player_new_position).is_blocking():
+                #Update the player's position.
+                self._player_position = player_new_position
+                #Use if statement to judge if there is a weapon on the tile.
+                if Tile.get_weapon(
+                        self.get_tile(self._player_position)
+                ) is not None:
+                    #Equip the weapon on the tile to the player.
+                    self._player.equip(
+                        Tile.get_weapon(self.get_tile(self._player_position))
+                    )
+                    #Remove the weapon from the tile.
+                    Tile.remove_weapon(self.get_tile(self._player_position))
+
+                self.perform_attack(self._player, self._player_position)
+                self.end_turn()
+
+
+    def has_won(self) -> bool:
+        """
+        Returns True if the player has won, otherwise False.
+
+        Return:
+            A boolean value of the game state.
+        """
+
+        #Get the tile which the player is on.
+        player_tile = self.get_tile(self._player_position)
+        #Determine if the player is on the goal tile and all slugs dead,
+        #if so, return True, otherwise, return False.
+        return (
+            player_tile.get_symbol() == GOAL_TILE
+            and
+            self._slugs == {}
+        )
+
+
+    def has_lost(self) -> bool:
+        """
+        Returns True if the player has lost, otherwise False.
+
+        Return:
+            A boolean value of the game state.
+        """
+
+        #Determine if the player is dead, if so, return True,
+        #otherwise, return False.
+        return not self._player.is_alive()
+
+
+
+def load_level(filename: str) -> SlugDungeonModel:
+    """
+    Read the level from the file and return a SlugDungeonModel instance.
+
+    Parameters:
+        filename: The name of the file to read.
+    """
+
+    #Open the file with the input filename.
+    with open(filename, 'r') as level_file:
+        #Read the content of the file.
+        content = level_file.readlines()
+        #Get the player's max_health from the first line of the content.
+        player_max_health = int(content[0])
+        #Set the default values for the variables used for
+        #SlugDungronModel initializer.
+        read_tiles = []
+        read_slugs = {}
+        read_player = None
+        player_position = ()
+
+        #Use for loop to judge all the lines in the content list.
+        for row_order, line in enumerate(content[1:], start=0):
+            #Create an empty list to store the rows.
+            rows = []
+            #Use for loop to judge all the characters in the line.
+            for column_order, char in enumerate(line[:-1], start=0):
+                #Use if statement to judge the character in the line and
+                #create the corresponding tile instance.
+                if char == WALL_TILE:
+                    rows.append(create_tile(WALL_TILE))
+                elif char == GOAL_TILE:
+                    rows.append(create_tile(GOAL_TILE))
+                elif char == PLAYER_SYMBOL:
+                    read_player = Player(player_max_health)
+                    player_position = (row_order, column_order)
+                    rows.append(create_tile(FLOOR_TILE))
+                elif char == NICE_SLUG_SYMBOL:
+                    read_slugs[(row_order, column_order)] = NiceSlug()
+                    rows.append(create_tile(FLOOR_TILE))
+                elif char == ANGRY_SLUG_SYMBOL:
+                    read_slugs[(row_order, column_order)] = AngrySlug()
+                    rows.append(create_tile(FLOOR_TILE))
+                elif char == SCARED_SLUG_SYMBOL:
+                    read_slugs[(row_order, column_order)] = ScaredSlug()
+                    rows.append(create_tile(FLOOR_TILE))
+                else:
+                    rows.append(create_tile(char))
+            #Append the rows into the tiles list.
+            read_tiles.append(rows)
+
+        #Create a new SlugDungeonModel instance with the read values.
+        return SlugDungeonModel(read_tiles, read_slugs, read_player, player_position)
+
+
+
+
+
 
 
 
@@ -990,3 +1183,51 @@ class view():
 
 if __name__ == "__main__":
     main()
+    file = load_level("./levels/leveltest.txt")
+    file._player = Player(25)
+    file._slugs = {
+        (1, 3): ScaredSlug(),
+        (2, 1): NiceSlug(),
+        (2, 2): AngrySlug(),
+        (2, 4): ScaredSlug(),
+        (4, 2): AngrySlug(),
+    }
+    # Convert level string to proper tiles
+
+
+    slugs = {
+        (1, 3): ScaredSlug(),
+        (2, 1): NiceSlug(),
+        (2, 2): AngrySlug(),
+        (2, 4): ScaredSlug(),
+        (4, 2): AngrySlug(),
+    }
+    player = Player(25)
+
+    model = SlugDungeonModel(
+        file._tiles, slugs, player, (1, 1)
+    )
+
+    # Setup sword to player right
+    sword = PoisonSword()
+    tile_to_right = model.get_tile((1, 2))
+    tile_to_right.set_weapon(sword)
+    print(player.get_health())
+    # Player moves right
+    player.apply_effects({"poison": 1, "damage": 5})
+    print(player.get_health())
+    model.handle_player_move((0, 1))
+    #assertNotEqual(model.get_slugs(), slugs)
+    print(player.get_health())
+    print(player.get_health() == 25 - 5 - 2 - 1)
+
+    # # Assert that player damaged the enemies
+    # len(model.get_slugs()) == 4
+    # angry_slug_position = (2, 2)
+    # angry_slug = model.get_slugs().get(angry_slug_position)
+    # angry_slug.get_health() == 2
+
+
+
+
+
