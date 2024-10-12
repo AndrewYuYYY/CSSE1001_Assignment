@@ -1,15 +1,20 @@
 import tkinter as tk
+from doctest import master
+from fileinput import filename
 from tkinter import messagebox, filedialog
 from typing import Callable, Optional
 
 from support import *
 
-# Implement the classes, methods & functions described in the task sheet here
 
-def main():
-    # Implement your main function here
-    pass
 
+
+def main() -> None:
+    """
+    Handle the game play.
+    """
+    root = tk.Tk()
+    play_game(root, './levels/level1.txt')
 
 
 class Weapon:
@@ -20,12 +25,6 @@ class Weapon:
     def __init__(self) -> None:
         """
         Constructor for Weapon class.
-
-        Parameters:
-            symbol: The symbol of the weapon.
-            name: The name of the weapon.
-            effect: The effect of the weapon.
-            range: The range of the weapon.
         """
 
         #Set a default value for the Weapon class variables.
@@ -253,6 +252,7 @@ class Tile:
         """
 
         self._symbol = FLOOR_TILE
+        self._weapon = None
 
 
     def __str__(self) -> str:
@@ -275,7 +275,10 @@ class Tile:
             A string of the instance.
         """
 
-        return f"{self.__class__.__name__}('{self._symbol}', {self._is_blocking})"
+        return (
+            f"{self.__class__.__name__}"
+            f"('{self._symbol}', {self._is_blocking})"
+        )
 
 
 
@@ -448,6 +451,9 @@ class Entity:
 
         #Use for-loop to repeat looking all the effects
         #in the input effects dictionary.
+        # print("before apply_effects")
+        # print(Player.get_health(self))
+        # print("====================")
         for effect, amount in effects.items():
             #Use if statement to judge the effect type
             #and apply the amount of corresponding effect.
@@ -465,13 +471,18 @@ class Entity:
                     self._health = self._max_health
             elif effect == 'poison':
                 self._poison += amount
+        # print("after apply_effects")
+        # print(Player.get_health(self))
+        # print("====================")
 
 
     def apply_poison(self) -> None:
         """
         Applies the amount of poison effect to the entity.
         """
-
+        # print("before apply_poison")
+        # print(Player.get_health(self))
+        # print("====================")
         #Use if statement to judge if the poison effect will be applied.
         if self._health > 0 and self._poison > 0:
             #Reduce the health of entity by the amount of poison state.
@@ -482,6 +493,12 @@ class Entity:
                 self._health = 0
             #Reduce the poison state by 1.
             self._poison -= 1
+
+        # print("after apply_poison")
+        # print(Player.get_health(self))
+        # print("====================")
+
+
 
 
     def is_alive(self) -> bool:
@@ -802,11 +819,11 @@ class SlugDungeonModel:
         """
         Constructor for SlugDungeonModel class.
         """
-
         self._tiles = tiles
-        self._slugs = slugs
+        self._slugs = slugs.copy()
         self._player = player
         self._player_position = player_position
+        self._player_previous_position = player_position
 
 
     def get_tiles(self) -> list[list[Tile]]:
@@ -918,22 +935,19 @@ class SlugDungeonModel:
                         )
 
                         #Use if statement to judge if
-                        #the next position is inside the dungeon.
+                        #the next position is inside the dungeon and
+                        #not blocking and not occupied by slugs and
+                        #not the same as the player's position.
                         if (
                             0 <= next_position[0] < len(self._tiles) and
-                            0 <= next_position[1] < len(self._tiles[0])
+                            0 <= next_position[1] < len(self._tiles[0]) and
+                            not self.get_tile(next_position).is_blocking() and
+                            next_position not in self._slugs.keys() and
+                            next_position != self._player_position
                         ):
-                            #Use if statement to judge if the next position
-                            #is not blocking and not occupied by other slugs,
-                            #and not occupied by the player.
-                            if (
-                                not self.get_tile(next_position).is_blocking()
-                                and next_position not in self._slugs.keys()
-                                and next_position is not self._player_position
-                            ):
-                                #Append the next position into
-                                #the valid_positions list.
-                                valid_positions.append(next_position)
+                            #Append the next position into
+                            #the valid_positions list.
+                            valid_positions.append(next_position)
 
         return valid_positions
 
@@ -976,6 +990,7 @@ class SlugDungeonModel:
                         effects = weapon.get_effect()
                         #Apply the effect to the slug.
                         slug.apply_effects(effects)
+
                     #Use if statement to judge if the target position
                     #is occupied by the player and the attacker is a slug.
                     elif(
@@ -1013,34 +1028,33 @@ class SlugDungeonModel:
                 )
 
             else:
-                #Append the alive slug into the alive_slugs dictionary.
+                #Add the alive slug into the alive_slugs dictionary.
                 alive_slugs[slug_position] = slug
 
-        #Set a new dictionary for storing the slugs after moving.
-        moved_slugs = {}
-        #Use for loop to let all alive slugs to move and attack.
-        for slug_position, slug in alive_slugs.items():
+        #Updated the slugs dictionary to the alive slugs.
+        self._slugs = alive_slugs
+        #Get a copy of the Slugs dictionary.
+        slugs_copy = self._slugs.copy()
+        #Use for loop to let all alive slugs to move.
+        for slug_position, slug in slugs_copy.items():
             #Use if statement to judge if the slug can move.
             if slug.can_move():
+                #print('test', self.get_valid_slug_positions(slug))
                 new_slug_position = slug.choose_move(
                     self.get_valid_slug_positions(slug),
                     slug_position,
-                    self._player_position
+                    self._player_previous_position
                 )
 
-                moved_slugs[new_slug_position] = slug
-                #Slug attacks
-                self.perform_attack(slug, new_slug_position)
+                del self._slugs[slug_position]
+                self._slugs[new_slug_position] = slug
 
-            else:
-                moved_slugs[slug_position] = slug
-
-            #State the slug has completed its turn,
-            #used for toggle the can_move status.
+        #Use for loop to let all alive slugs to attack.
+        for slug_position, slug in self._slugs.items():
+            self.perform_attack(slug, slug_position)
+            # State the slug has completed its turn,
+            # used for toggle the can_move status.
             slug.end_turn()
-
-        #Update the slugs dictionary.
-        self._slugs = moved_slugs
 
 
     def handle_player_move(self, position_delta: Position) -> None:
@@ -1054,29 +1068,32 @@ class SlugDungeonModel:
             self._player_position[1] + position_delta[1]
         )
 
-
-        #Use if statement to judge if the new position is inside the dungeon.
+        #Use if statement to judge if the new position is inside the dungeon
+        #and not blocking and not occupied by slugs.
         if (
             0 <= player_new_position[0] < len(self._tiles) and
-            0 <= player_new_position[1] < len(self._tiles[0])
+            0 <= player_new_position[1] < len(self._tiles[0]) and
+            not self.get_tile(player_new_position).is_blocking() and
+            player_new_position not in self._slugs.keys()
         ):
-            #Use if statement to judge if the new position is not blocking.
-            if not self.get_tile(player_new_position).is_blocking():
-                #Update the player's position.
-                self._player_position = player_new_position
-                #Use if statement to judge if there is a weapon on the tile.
-                if Tile.get_weapon(
-                        self.get_tile(self._player_position)
-                ) is not None:
-                    #Equip the weapon on the tile to the player.
-                    self._player.equip(
-                        Tile.get_weapon(self.get_tile(self._player_position))
-                    )
-                    #Remove the weapon from the tile.
-                    Tile.remove_weapon(self.get_tile(self._player_position))
+            #Store the previous position and update the new position.
+            self._player_previous_position = self._player_position
+            self._player_position = player_new_position
+            #Use if statement to judge if there is a weapon on the tile.
+            if Tile.get_weapon(
+                    self.get_tile(self._player_position)
+            ) is not None:
+                #Equip the weapon on the tile to the player.
+                self._player.equip(
+                    Tile.get_weapon(self.get_tile(self._player_position))
+                )
+                #Remove the weapon from the tile.
+                Tile.remove_weapon(self.get_tile(self._player_position))
 
-                self.perform_attack(self._player, self._player_position)
-                self.end_turn()
+            #Plsyer perform attack.
+            self.perform_attack(self._player, self._player_position)
+            #End the player's turn and slugs move and attack.
+            self.end_turn()
 
 
     def has_won(self) -> bool:
@@ -1120,6 +1137,7 @@ def load_level(filename: str) -> SlugDungeonModel:
         filename: The name of the file to read.
     """
 
+
     #Open the file with the input filename.
     with open(filename, 'r') as level_file:
         #Read the content of the file.
@@ -1134,11 +1152,11 @@ def load_level(filename: str) -> SlugDungeonModel:
         player_position = ()
 
         #Use for loop to judge all the lines in the content list.
-        for row_order, line in enumerate(content[1:], start=0):
+        for row_order, line in enumerate(content[1:]):
             #Create an empty list to store the rows.
             rows = []
             #Use for loop to judge all the characters in the line.
-            for column_order, char in enumerate(line[:-1], start=0):
+            for column_order, char in enumerate(line[:-1]):
                 #Use if statement to judge the character in the line and
                 #create the corresponding tile instance.
                 if char == WALL_TILE:
@@ -1168,66 +1186,409 @@ def load_level(filename: str) -> SlugDungeonModel:
 
 
 
+def play_game(root: tk.Tk, file_path: str) -> None:
+    """
+    Constructs the controller instance using the root and the given file_path.
+
+    Parameters:
+        root: The Tk instance.
+        file_path: The file path of the level files.
+    """
+
+    SlugDungeon(root, file_path)
+    root.mainloop()
+
+
+
+class DungeonMap(AbstractGrid): #One class in view
+    def __init__(self,
+        master: Union[tk.Tk, tk.Frame],
+        dimensions: tuple[int, int],
+        size: tuple[int, int],
+        **kwargs,
+    ) -> None:
+        """
+        Constructor for the DungeonMap class.
+
+        Parameters:
+            master: The master widget.
+            dimensions: A tuple of the rows and columns of the dungeon.
+            size: A tuple of the size of the dungeon in pixel.
+        """
+        super().__init__(master, dimensions, size, **kwargs)
+
+
+    def redraw(self, tiles: list[list[Tile]], player_position: Position,
+               slugs: dict[Position, Slug]) -> None:
+        """
+        Redraws the dungeon map.
+
+        Parameters:
+            tiles: A list of list of Tile instances.
+            player_position: A tuple of the player's position.
+            slugs: A dictionary of the slug positions and the Slug instances.
+        """
+
+        self.clear()
+        for row_order, tile_row in enumerate(tiles):
+            for column_order, tile in enumerate(tile_row):
+                tile_symbol = tile.get_symbol()
+                weapon_on_tile = tile.get_weapon()
+
+                #Get the position, bounding box of the tile.
+                position = (row_order, column_order)
+                bounding_box = self.get_bbox(position)
+
+                #Use an extremely long if statements to draw the tiles
+                #with different symbols input.
+                if tile_symbol == WALL_TILE:
+                    self.create_rectangle(bounding_box, fill=WALL_COLOUR)
+                elif tile_symbol == FLOOR_TILE:
+                    self.create_rectangle(bounding_box, fill=FLOOR_COLOUR)
+                    #Use if statement to judge if there is a weapon on the tile
+                    #if so, give the weapon's notation on the tile.
+                    if weapon_on_tile is not None:
+                        self.annotate_position(position, weapon_on_tile.get_symbol())
+
+                elif tile_symbol == GOAL_TILE:
+                    self.create_rectangle(bounding_box, fill=GOAL_COLOUR)
+
+
+        #Get the bounding_box of the player.
+        bounding_box_player = self.get_bbox(player_position)
+        #Draw and add the notation of the player on the map.
+        self.create_oval(bounding_box_player, fill=PLAYER_COLOUR)
+        self.annotate_position(player_position, 'Player')
+
+
+        #Use for loop to judge all the slugs in the slugs dictionary.
+        for slug_position, slug in slugs.items():
+            #Get the bounding_box of the slug.
+            bounding_box_slug = self.get_bbox(slug_position)
+
+            #Draw the slug on the map.
+            self.create_oval(bounding_box_slug, fill=SLUG_COLOUR)
+
+            #Use if statement to judge the type of the slug.
+            if isinstance(slug, NiceSlug):
+                #Put the notation of slug type to be 'NiceSlug'.
+                self.annotate_position(slug_position, 'Nice\nSlug')
+            elif isinstance(slug, AngrySlug):
+                #Put the notation of slug type to be 'AngrySlug'.
+                self.annotate_position(slug_position, 'Angry\nSlug')
+            elif isinstance(slug, ScaredSlug):
+                #Put the notation of slug type to be 'ScaredSlug'.
+                self.annotate_position(slug_position, 'Scared\nSlug')
+
+
+class DungeonInfo(AbstractGrid): #One class in view
+    def __init__(self,
+        master: Union[tk.Tk, tk.Frame],
+        dimensions: tuple[int, int],
+        size: tuple[int, int],
+        **kwargs,
+    ) -> None:
+        """
+        Constructor for DungeonInfo class.
+
+        Parameters:
+            master: The master widget.
+            dimensions: A tuple of the rows and columns of the info part.
+            size: A tuple of the size of the info part in pixel.
+        """
+
+        super().__init__(master, dimensions, size, **kwargs)
 
 
 
 
+    def redraw(self, entities: dict[Position, Entity]) -> None:
+        """
+        Redraws the entities' infos.
+
+        Parameters:
+            entities: A dictionary of positions and the Entity.
+        """
+        self.clear()
+        #Set the default value of the slug number.
+        slugs_num = 1
+
+        #Draw the title of the info part.
+        self.annotate_position((0,0), text='Name', font=TITLE_FONT)
+        self.annotate_position((0,1), text='Position', font=TITLE_FONT)
+        self.annotate_position((0,2), text='Weapon', font=TITLE_FONT)
+        self.annotate_position((0,3), text='Health', font=TITLE_FONT)
+        self.annotate_position((0,4), text='Poison', font=TITLE_FONT)
 
 
 
 
-class view():
-    def __init__(self, ):
-        pass
+        #Use a for loop to judge all the entities in the entities dictionary.
+        for entity_position, entity in entities.items():
+
+            #If the entity is a player, draw the information of the player.
+            if isinstance(entity, Player):
+                player_name = 'Player'
+                player_weapon = 'None'
+                if entity.get_weapon() is not None:
+                    player_weapon = entity.get_weapon().get_name()
+                player_health = entity.get_health()
+                player_poison = entity.get_poison()
+
+                #Draw the player's information on the Player_info part.
+                self.annotate_position((1,0), text=player_name, font=REGULAR_FONT)
+                self.annotate_position((1,1), text=str(entity_position), font=REGULAR_FONT)
+                self.annotate_position((1,2), text=player_weapon, font=REGULAR_FONT)
+                self.annotate_position((1,3), text=str(player_health), font=REGULAR_FONT)
+                self.annotate_position((1,4), text=str(player_poison), font=REGULAR_FONT)
+
+
+            #If the entity is a slug, draw the information of the slug.
+            elif isinstance(entity, Slug):
+                slug_name = str(entity)
+                slug_weapon = entity.get_weapon().get_name()
+                slug_health = entity.get_health()
+                slug_poison = entity.get_poison()
+
+                #Draw the slugs' information on the Slug_info part.
+                self.annotate_position((slugs_num,0), text=slug_name, font=REGULAR_FONT)
+                self.annotate_position((slugs_num,1), text=str(entity_position), font=REGULAR_FONT)
+                self.annotate_position((slugs_num,2), text=slug_weapon, font=REGULAR_FONT)
+                self.annotate_position((slugs_num,3), text=str(slug_health), font=REGULAR_FONT)
+                self.annotate_position((slugs_num,4), text=str(slug_poison), font=REGULAR_FONT)
+
+
+                #Add the slug number by 1 for the next slug's info
+                #to be drawn on the next row.
+                slugs_num += 1
+
+
+
+class ButtonPanel(tk.Frame):
+    def __init__(self, root:tk.Tk, on_load: Callable, on_quit: Callable) -> None:
+        """
+        Constructor for ButtonPanel class.
+
+        Parameters:
+            root: The Tk instance.
+            on_load: The function called when click the Load Game button.
+            on_quit: The function called when click the Quit button.
+        """
+
+        super().__init__(root)
+        self._root = root
+        #Pack the button panel to the top of the root window as it can.
+        self.pack(side=tk.TOP)
+
+        #Creater a frame for the load button.
+        load_button_panel = tk.Frame(
+            self,
+            bg='Grey',
+            width=DUNGEON_MAP_SIZE[0]
+        )
+        load_button_panel.pack(side=tk.LEFT, fill='both', expand=True)
+
+        #Create the load game button.
+        load_button = tk.Button(
+            load_button_panel,
+            text='Load Game',
+            command=on_load,
+            bg='White'
+        )
+        load_button.pack(fill='both', expand=True)
+
+        #Create a frame for the quit button.
+        quit_button_panel = tk.Frame(
+            self,
+            bg='Grey',
+            width=SLUG_INFO_SIZE[0]
+        )
+        quit_button_panel.pack(side=tk.LEFT, fill='both', expand=True)
+
+        #Create the quit button.
+        quit_button = tk.Button(
+            quit_button_panel,
+            text='Quit',
+            command=on_quit,
+            bg='White'
+        )
+        quit_button.pack(fill='both', expand=True)
+
+
+
+class SlugDungeon(): #Controller
+    """
+    A class to display the SlugDungeon game.
+    """
+
+    def __init__(self, root: tk.Tk, filename: str) -> None:
+        """
+        Constructor for SlugDungeon class.
+
+        Parameters:
+            root: The Tk instance.
+            filename: The name of the file to read.
+        """
+
+        #Set the root (window) and the title of the game.
+        self._root = root
+        self._root.title('Slug Dungeon')
+        #Read the file input and load the model.
+        self._filename = filename
+        self._model = load_level(filename)
+
+        #Set the game frame (map and slugs info).
+        self._game_frame = tk.Frame(root)
+        self._game_frame.pack(side=tk.TOP)
+        #Set the dungeon map inside the game frame.
+        self._dungeon_map = DungeonMap(
+            self._game_frame,
+            self._model.get_dimensions(),
+            size=DUNGEON_MAP_SIZE
+        )
+        self._dungeon_map.pack(side=tk.LEFT,fill='both')
+        self._dungeon_map.redraw(self._model.get_tiles(),
+                                      self._model.get_player_position(),
+                                      self._model.get_slugs())
+        #Set the slugs info inside the game frame.
+        self._slugs_info = DungeonInfo(
+            self._game_frame,
+            (7,5),
+            SLUG_INFO_SIZE
+        )
+        self._slugs_info.pack(side=tk.LEFT, fill='both', expand=True)
+        self._slugs_info.redraw(self._model.get_slugs())
+
+        #Set the player info widget.
+        self._player_info = DungeonInfo(
+            self._root,
+            (2,5),
+            PLAYER_INFO_SIZE
+        )
+        self._player_info.pack(side=tk.TOP)
+        self._player_info.redraw(
+            {self._model.get_player_position(): self._model.get_player()}
+        )
+
+        #Set the button panel.
+        self._button_panel = ButtonPanel(
+            self._root,
+            self.on_load,
+            self.on_quit
+        )
+        self._button_panel.pack(side=tk.TOP, fill=tk.X, expand=True)
+
+        # Bind the pressed keys with events.
+        self._root.bind('<w>', self.handle_key_press)
+        self._root.bind('<a>', self.handle_key_press)
+        self._root.bind('<s>', self.handle_key_press)
+        self._root.bind('<d>', self.handle_key_press)
+        self._root.bind('<space>', self.handle_key_press)
+
+
+    def redraw(self) -> None:
+        """
+        Redraws the game.
+        """
+
+        #Redraw the dungeon map, slugs info and player info.
+        self._dungeon_map.redraw(self._model.get_tiles(),
+                                      self._model.get_player_position(),
+                                      self._model.get_slugs())
+        self._slugs_info.redraw(self._model.get_slugs())
+        self._player_info.redraw(
+            {self._model.get_player_position(): self._model.get_player()}
+        )
+
+        #Update the game progress.
+        self._root.update_idletasks()
+
+
+    def handle_key_press(self, event: tk.Event) -> None:
+        """
+        Handle the input key press events.
+
+        Parameters:
+            event: The event object.
+        """
+
+        #Get the key pressed.
+        key_pressed = event.keysym
+
+        #Handle the player's move according to the key pressed.
+        if key_pressed == 'w':
+            self._model.handle_player_move(POSITION_DELTAS[3])
+        elif key_pressed == 'a':
+            self._model.handle_player_move(POSITION_DELTAS[1])
+        elif key_pressed == 's':
+            self._model.handle_player_move(POSITION_DELTAS[2])
+        elif key_pressed == 'd':
+            self._model.handle_player_move(POSITION_DELTAS[0])
+        elif key_pressed == 'space':
+            self._model.handle_player_move((0,0))
+
+        #Redraw the game display after the player's move.
+        self.redraw()
+
+        #Determine if the player has won or lost.
+        if self._model.has_won():
+            won_message = messagebox.askyesno(WIN_TITLE, WIN_MESSAGE)
+            if won_message:
+                self.clear_root_window()
+                SlugDungeon(self._root, self._filename)
+            else:
+                self._root.destroy()
+        elif self._model.has_lost():
+            lost_message = messagebox.askyesno(LOSE_TITLE, LOSE_MESSAGE)
+            if lost_message:
+                self.clear_root_window()
+                SlugDungeon(self._root, self._filename)
+            else:
+                self._root.destroy()
+
+
+    def load_level(self) -> None:
+        """
+        Load the game.
+        """
+
+        #Ask for new filename input.
+        self._filename = filedialog.askopenfilename()
+        #Clear the root window.
+        self.clear_root_window()
+        #Initialize the game with the new file on the cleared root window.
+        self.__init__(self._root, self._filename)
+
+
+
+    def on_load(self) -> None: #Function for button
+        """
+        Load the game.
+        """
+        self.load_level()
+
+
+    def on_quit(self) -> None: #Function for button
+        """
+        Quit the game.
+        """
+        self._root.destroy()
+
+
+    def clear_root_window(self) -> None:
+        """
+        Clear the root window for further use.
+        """
+
+        #Destroy all the widgets in the root window
+        for widget in self._root.winfo_children():
+            widget.destroy()
+
+
 
 
 if __name__ == "__main__":
     main()
-    file = load_level("./levels/leveltest.txt")
-    file._player = Player(25)
-    file._slugs = {
-        (1, 3): ScaredSlug(),
-        (2, 1): NiceSlug(),
-        (2, 2): AngrySlug(),
-        (2, 4): ScaredSlug(),
-        (4, 2): AngrySlug(),
-    }
-    # Convert level string to proper tiles
-
-
-    slugs = {
-        (1, 3): ScaredSlug(),
-        (2, 1): NiceSlug(),
-        (2, 2): AngrySlug(),
-        (2, 4): ScaredSlug(),
-        (4, 2): AngrySlug(),
-    }
-    player = Player(25)
-
-    model = SlugDungeonModel(
-        file._tiles, slugs, player, (1, 1)
-    )
-
-    # Setup sword to player right
-    sword = PoisonSword()
-    tile_to_right = model.get_tile((1, 2))
-    tile_to_right.set_weapon(sword)
-    print(player.get_health())
-    # Player moves right
-    player.apply_effects({"poison": 1, "damage": 5})
-    print(player.get_health())
-    model.handle_player_move((0, 1))
-    #assertNotEqual(model.get_slugs(), slugs)
-    print(player.get_health())
-    print(player.get_health() == 25 - 5 - 2 - 1)
-
-    # # Assert that player damaged the enemies
-    # len(model.get_slugs()) == 4
-    # angry_slug_position = (2, 2)
-    # angry_slug = model.get_slugs().get(angry_slug_position)
-    # angry_slug.get_health() == 2
-
-
 
 
 
