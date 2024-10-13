@@ -1479,11 +1479,8 @@ class SlugDungeon(): #Controller
         self._button_panel.pack(side=tk.TOP, fill=tk.X, expand=True)
 
         # Bind the pressed keys with events.
-        self._root.bind('<w>', self.handle_key_press)
-        self._root.bind('<a>', self.handle_key_press)
-        self._root.bind('<s>', self.handle_key_press)
-        self._root.bind('<d>', self.handle_key_press)
-        self._root.bind('<space>', self.handle_key_press)
+        self._root.bind('<KeyPress>', self.handle_key_press)
+
 
 
     def redraw(self) -> None:
@@ -1492,9 +1489,11 @@ class SlugDungeon(): #Controller
         """
 
         #Redraw the dungeon map, slugs info and player info.
-        self._dungeon_map.redraw(self._model.get_tiles(),
-                                      self._model.get_player_position(),
-                                      self._model.get_slugs())
+        self._dungeon_map.redraw(
+            self._model.get_tiles(),
+            self._model.get_player_position(),
+            self._model.get_slugs()
+        )
         self._slugs_info.redraw(self._model.get_slugs())
         self._player_info.redraw(
             {self._model.get_player_position(): self._model.get_player()}
