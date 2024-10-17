@@ -13,7 +13,10 @@ def main() -> None:
     """
     Handle the game play.
     """
+
+    #Set the root window.
     root = tk.Tk()
+    #The default game taken was from the level1.txt file.
     play_game(root, './levels/level1.txt')
 
 
@@ -78,14 +81,13 @@ class Weapon:
             A list of positions in range.
         """
 
-
         # Convert the Position into x, y coordinates of the weapon.
         x, y = position
         # Create an empty list to store the targets.
         targets = []
 
         #Use two for-loops to judge all the positions in the weapon's range.
-        #Only in a single direction.
+        #Only judge a single direction.
         for dx in range(-self._range, self._range + 1):
             # If statements used to exclude the current position.
             if dx == 0:
@@ -197,7 +199,8 @@ class Tile:
 
         self._symbol = symbol
         self._is_blocking = is_blocking
-        #Set the default value of the weapon as None.
+        #Set the default value of the weapon as None
+        #assume there's no weapon on the tile.
         self._weapon = None
 
 
@@ -337,6 +340,7 @@ class Entity:
         self._weapon = None
         self._symbol = ENTITY_SYMBOL
 
+
     def get_symbol(self) -> str:
         """
         Returns the symbol of the entity.
@@ -451,9 +455,6 @@ class Entity:
 
         #Use for-loop to repeat looking all the effects
         #in the input effects dictionary.
-        # print("before apply_effects")
-        # print(Player.get_health(self))
-        # print("====================")
         for effect, amount in effects.items():
             #Use if statement to judge the effect type
             #and apply the amount of corresponding effect.
@@ -470,19 +471,14 @@ class Entity:
                 if self._health > self._max_health:
                     self._health = self._max_health
             elif effect == 'poison':
-                self._poison += amount
-        # print("after apply_effects")
-        # print(Player.get_health(self))
-        # print("====================")
+                self._poison += amount #Add the amount of poison state.
 
 
     def apply_poison(self) -> None:
         """
         Applies the amount of poison effect to the entity.
         """
-        # print("before apply_poison")
-        # print(Player.get_health(self))
-        # print("====================")
+
         #Use if statement to judge if the poison effect will be applied.
         if self._health > 0 and self._poison > 0:
             #Reduce the health of entity by the amount of poison state.
@@ -493,12 +489,6 @@ class Entity:
                 self._health = 0
             #Reduce the poison state by 1.
             self._poison -= 1
-
-        # print("after apply_poison")
-        # print(Player.get_health(self))
-        # print("====================")
-
-
 
 
     def is_alive(self) -> bool:
@@ -924,10 +914,8 @@ class SlugDungeonModel:
                     #Append the current position into the valid_positions list.
                     valid_positions.append(current_position)
 
-                    #Set the available movements of the slug.
-                    movements = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-
-                    for dx, dy in movements:
+                    #Use for loop to check all the possible moves of the slug.
+                    for dx, dy in POSITION_DELTAS:
                         #Get the possible next positions of the slug.
                         next_position = (
                             current_position[0] + dx,
@@ -982,7 +970,7 @@ class SlugDungeonModel:
                     #is occupied by a slug and the attacker is the player.
                     if (
                         target in self._slugs.keys() and
-                        isinstance(entity, Player)
+                        entity.get_name() == 'Player'
                     ):
                         #Get the slug in the target position.
                         slug = self._slugs[target]
@@ -995,7 +983,7 @@ class SlugDungeonModel:
                     #is occupied by the player and the attacker is a slug.
                     elif(
                         target == self._player_position and
-                        isinstance(entity, Slug)
+                        entity.get_name() != 'Player'
                     ):
                         #Get the effect of the weapon.
                         effects = weapon.get_effect()
@@ -1270,13 +1258,13 @@ class DungeonMap(AbstractGrid): #One class in view
             self.create_oval(bounding_box_slug, fill=SLUG_COLOUR)
 
             #Use if statement to judge the type of the slug.
-            if isinstance(slug, NiceSlug):
+            if slug.get_name() == 'NiceSlug':
                 #Put the notation of slug type to be 'NiceSlug'.
                 self.annotate_position(slug_position, 'Nice\nSlug')
-            elif isinstance(slug, AngrySlug):
+            elif slug.get_name() == 'AngrySlug':
                 #Put the notation of slug type to be 'AngrySlug'.
                 self.annotate_position(slug_position, 'Angry\nSlug')
-            elif isinstance(slug, ScaredSlug):
+            elif slug.get_name() == 'ScaredSlug':
                 #Put the notation of slug type to be 'ScaredSlug'.
                 self.annotate_position(slug_position, 'Scared\nSlug')
 
@@ -1327,7 +1315,7 @@ class DungeonInfo(AbstractGrid): #One class in view
         for entity_position, entity in entities.items():
 
             #If the entity is a player, draw the information of the player.
-            if isinstance(entity, Player):
+            if entity.get_name() == 'Player':
                 player_name = 'Player'
                 player_weapon = 'None'
                 if entity.get_weapon() is not None:
@@ -1344,7 +1332,7 @@ class DungeonInfo(AbstractGrid): #One class in view
 
 
             #If the entity is a slug, draw the information of the slug.
-            elif isinstance(entity, Slug):
+            elif entity.get_name() != 'Player':
                 slug_name = str(entity)
                 slug_weapon = entity.get_weapon().get_name()
                 slug_health = entity.get_health()
