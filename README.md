@@ -1,2 +1,1 @@
-# UQ-projects
-Tasks in computing during UQ study
+# CSSE1001 Assignment
